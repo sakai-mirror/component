@@ -45,21 +45,6 @@
 			<artifactId>commons-logging</artifactId>
 			<version>1.0.4</version>
 			<url>http://jakarta.apache.org/commons/logging/</url>
-			<properties>
-				<!-- deploy dependency jar to "shared", "common" or "server": use <war.bundle>true</war.bundle> to include in war -->
-				<deploy.target>shared</deploy.target>
-			</properties>
-		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.8</version>
-			<url>http://logging.apache.org/log4j/</url>
-			<properties>
-				<!-- deploy dependency jar to "shared", "common" or "server": use <war.bundle>true</war.bundle> to include in war -->
-				<deploy.target>common</deploy.target>
-			</properties>
 		</dependency>
 
 	</dependencies>
