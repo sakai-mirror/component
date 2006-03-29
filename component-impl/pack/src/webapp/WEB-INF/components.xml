@@ -4,8 +4,8 @@
 
 <beans>
 
-	<bean id="org.sakaiproject.config.api.ServerConfigurationService"
-			class="org.sakaiproject.config.impl.BasicConfigurationService"
+	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
+			class="org.sakaiproject.component.impl.BasicConfigurationService"
 			init-method="init"
 			destroy-method="destroy"
 			singleton="true">
