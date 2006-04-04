@@ -9,8 +9,10 @@
 			init-method="init"
 			destroy-method="destroy"
 			singleton="true">
-		<property name="threadLocalManager"><ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager"/></property>
-		<property name="sessionManager"><ref bean="org.sakaiproject.webapp.api.SessionManager"/></property>
+
+		<lookup-method name="threadLocalManager" bean="org.sakaiproject.thread_local.api.ThreadLocalManager" />
+		<lookup-method name="sessionManager" bean="org.sakaiproject.webapp.api.SessionManager" />
+
 		<property name="toolOrderFile"><value>toolOrder.xml</value></property>
 	</bean>
 

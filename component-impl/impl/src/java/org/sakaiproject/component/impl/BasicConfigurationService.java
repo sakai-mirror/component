@@ -47,11 +47,8 @@ import org.w3c.dom.NodeList;
  * <p>
  * BasicConfigurationService is a basic implementation of the ServerConfigurationService.
  * </p>
- * 
- * @author University of Michigan, Sakai Software Development Team
- * @version $Revision$
  */
-public class BasicConfigurationService implements ServerConfigurationService
+public abstract class BasicConfigurationService implements ServerConfigurationService
 {
 	/** Our log (commons). */
 	private static Log M_log = LogFactory.getLog(BasicConfigurationService.class);
@@ -81,36 +78,22 @@ public class BasicConfigurationService implements ServerConfigurationService
 	protected Map m_defaultTools = new HashMap();
 
 	/**********************************************************************************************************************************************************************************************************************************************************
-	 * Dependencies and their setter methods
+	 * Dependencies
 	 *********************************************************************************************************************************************************************************************************************************************************/
 
-	/** Dependency: the current manager. */
-	protected ThreadLocalManager m_threadLocalManager = null;
+	/**
+	 * @return the ThreadLocalManager collaborator.
+	 */
+	protected abstract ThreadLocalManager threadLocalManager();
 
 	/**
-	 * Dependency - set the current manager.
-	 * 
-	 * @param value
-	 *        The current manager.
+	 * @return the SessionManager collaborator.
 	 */
-	public void setThreadLocalManager(ThreadLocalManager manager)
-	{
-		m_threadLocalManager = manager;
-	}
+	protected abstract SessionManager sessionManager();
 
-	/** Dependency: the session manager. */
-	protected SessionManager m_sessionManager = null;
-
-	/**
-	 * Dependency - set the session manager.
-	 * 
-	 * @param value
-	 *        The session manager.
-	 */
-	public void setSessionManager(SessionManager manager)
-	{
-		m_sessionManager = manager;
-	}
+	/**********************************************************************************************************************************************************************************************************************************************************
+	 * Configuration
+	 *********************************************************************************************************************************************************************************************************************************************************/
 
 	/**
 	 * Configuration: set the file path for registration files.
@@ -245,7 +228,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	public String getServerUrl()
 	{
 		// try to get the value pre-computed for this request, to better match the request server naming conventions
-		String rv = (String) m_threadLocalManager.get(CURRENT_SERVER_URL);
+		String rv = (String) threadLocalManager().get(CURRENT_SERVER_URL);
 		if (rv == null)
 		{
 			rv = (String) m_properties.get("serverUrl");
@@ -309,7 +292,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		}
 
 		// check for a logged in user
-		String user = m_sessionManager.getCurrentSessionUserId();
+		String user = sessionManager().getCurrentSessionUserId();
 		boolean loggedIn = (user != null);
 
 		// if logged in, replace the UID in the pattern
