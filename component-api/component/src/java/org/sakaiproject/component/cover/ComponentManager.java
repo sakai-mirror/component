@@ -38,17 +38,12 @@ public class ComponentManager
 	/** A component manager - use the Spring based one. */
 	private static org.sakaiproject.component.api.ComponentManager m_componentManager = null;
 
-	static
-	{
-		// construct and store first, so that in init() covers can be called -ggolden
-		m_componentManager = new SpringCompMgr(null);
-		((SpringCompMgr) m_componentManager).init();
-	}
-
 	/** If true, covers will cache the components they find once - good for production, bad for some unit testing. */
 	public static final boolean CACHE_COMPONENTS = true;
 
 	public static java.lang.String SAKAI_COMPONENTS_ROOT_SYS_PROP = org.sakaiproject.component.api.ComponentManager.SAKAI_COMPONENTS_ROOT_SYS_PROP;
+
+	private static Object m_syncObj = new Object();
 
 	/**
 	 * Access the component manager of the single instance.
@@ -57,6 +52,17 @@ public class ComponentManager
 	 */
 	public static org.sakaiproject.component.api.ComponentManager getInstance()
 	{
+		// make sure we make only one instance
+		synchronized (m_syncObj)
+		{
+			// if we do not yet have our component manager instance, create and init / populate it
+			if (m_componentManager == null)
+			{
+				m_componentManager = new SpringCompMgr(null);
+				((SpringCompMgr) m_componentManager).init();
+			}
+		}
+
 		return m_componentManager;
 	}
 
