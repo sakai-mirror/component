@@ -110,4 +110,9 @@ public class ComponentManager
 	{
 		return getInstance().getConfig();
 	}
+
+	public static void waitTillConfigured()
+	{
+		getInstance();
+	}
 }

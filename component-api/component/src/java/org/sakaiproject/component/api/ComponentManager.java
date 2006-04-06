@@ -108,4 +108,9 @@ public interface ComponentManager
 	 * @return The Properties with the configuration values used when configuring components.
 	 */
 	Properties getConfig();
+
+	/**
+	 * Wait right here till the component manager is fully configured.
+	 */
+	void waitTillConfigured();
 }

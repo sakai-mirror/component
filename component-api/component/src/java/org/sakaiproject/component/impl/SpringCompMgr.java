@@ -539,4 +539,12 @@ public class SpringCompMgr implements ComponentManager
 	{
 		return m_config;
 	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public void waitTillConfigured()
+	{
+		// TODO: -ggolden
+	}
 }
