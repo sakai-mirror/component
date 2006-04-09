@@ -36,7 +36,7 @@ import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
-import org.sakaiproject.webapp.api.SessionManager;
+import org.sakaiproject.tool.api.SessionManager;
 import org.springframework.core.io.ClassPathResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

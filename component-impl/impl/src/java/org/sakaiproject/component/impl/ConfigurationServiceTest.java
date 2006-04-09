@@ -22,7 +22,7 @@
 package org.sakaiproject.component.impl;
 
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
-import org.sakaiproject.webapp.api.SessionManager;
+import org.sakaiproject.tool.api.SessionManager;
 
 /**
  * <p>

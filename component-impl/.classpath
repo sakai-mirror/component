@@ -7,6 +7,6 @@
 	<classpathentry kind="var" path="MAVEN_REPO/servletapi/jars/servletapi-2.4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/component-api"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/util"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/webapp-api"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tool-api"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
