@@ -115,4 +115,9 @@ public class ComponentManager
 	{
 		getInstance();
 	}
+
+	public static boolean hasBeenClosed()
+	{
+		return getInstance().hasBeenClosed();
+	}
 }

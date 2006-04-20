@@ -66,6 +66,9 @@ public class SpringCompMgr implements ComponentManager
 	/** A set of properties used when configuring components. */
 	protected Properties m_config = null;
 
+	/** Records that close has been called. */
+	protected boolean m_hasBeenClosed = false;
+
 	/**
 	 * Initialize.
 	 * 
@@ -367,6 +370,7 @@ public class SpringCompMgr implements ComponentManager
 	 */
 	public void close()
 	{
+		m_hasBeenClosed = true;
 		m_ac.close();
 	}
 
@@ -545,6 +549,14 @@ public class SpringCompMgr implements ComponentManager
 	 */
 	public void waitTillConfigured()
 	{
-		// TODO: -ggolden
+		// Nothing really to do - the cover takes care of this -ggolden
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public boolean hasBeenClosed()
+	{
+		return m_hasBeenClosed;
 	}
 }

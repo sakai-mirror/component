@@ -113,4 +113,10 @@ public interface ComponentManager
 	 * Wait right here till the component manager is fully configured.
 	 */
 	void waitTillConfigured();
+	
+	/**
+	 * Check if the ComponentManager has already been or is in the processing of being closed.
+	 * @return true if closed, false if not.
+	 */
+	boolean hasBeenClosed();
 }
