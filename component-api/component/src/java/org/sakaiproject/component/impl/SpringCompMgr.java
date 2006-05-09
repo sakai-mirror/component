@@ -141,7 +141,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
@@ -157,7 +157,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// next layer in the sakai.propeties file from the sakai.home
@@ -171,7 +171,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// add then the local.properties from sakai.home
@@ -185,7 +185,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// add last the security.properties
@@ -199,7 +199,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// auto-set the server id if missing
@@ -226,7 +226,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder values
@@ -238,7 +238,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 
 		// set some system properties from the configuration values
@@ -251,7 +251,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.toString(), t);
 		}
 	}
 
@@ -291,7 +291,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn("get(" + iface.getName() + "): " + t);
+			M_log.warn("get(" + iface.getName() + "): ", t);
 		}
 
 		return component;
@@ -315,7 +315,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn("get(" + ifaceName + "): " + t);
+			M_log.warn("get(" + ifaceName + "): ", t);
 		}
 
 		return component;
