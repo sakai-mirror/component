@@ -95,6 +95,13 @@ public interface ServerConfigurationService
 	String getPortalUrl();
 
 	/**
+	 * Access the URL to the tool dispatcher service on the server - append any additional path to the end.
+	 * 
+	 * @return The URL to the tool dispatcher service on the server.
+	 */
+	String getToolUrl();
+
+	/**
 	 * Access the site id for the gateway (public) site.
 	 * 
 	 * @return The site id for the gateway (public) site.

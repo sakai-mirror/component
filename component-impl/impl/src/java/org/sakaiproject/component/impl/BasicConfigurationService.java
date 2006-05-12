@@ -279,6 +279,14 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	/**
 	 * {@inheritDoc}
 	 */
+	public String getToolUrl()
+	{
+		return getServerUrl() + (String) m_properties.get("toolPath");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getUserHomeUrl()
 	{
 		// get the configured URL (the text "#UID#" will be repalced with the current logged in user id

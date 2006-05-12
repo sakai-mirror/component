@@ -124,6 +124,14 @@ public class ServerConfigurationService
 		return service.getPortalUrl();
 	}
 
+	public static java.lang.String getToolUrl()
+	{
+		org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
+		if (service == null) return null;
+
+		return service.getToolUrl();
+	}
+
 	public static java.lang.String getGatewaySiteId()
 	{
 		org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
