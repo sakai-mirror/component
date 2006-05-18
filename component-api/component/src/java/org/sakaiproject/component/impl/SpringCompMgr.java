@@ -244,6 +244,16 @@ public class SpringCompMgr implements ComponentManager
 		// set some system properties from the configuration values
 		promotePropertiesToSystem(m_config);
 
+		// get our special log handler started before the rest
+		try
+		{
+			m_ac.getBean("org.sakaiproject.log.api.LogConfigurationManager");
+		}
+		catch (Throwable t)
+		{
+			M_log.warn(t.toString());
+		}
+
 		try
 		{
 			// get the singletons loaded
