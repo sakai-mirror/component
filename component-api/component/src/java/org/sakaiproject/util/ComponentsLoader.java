@@ -25,14 +25,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.sakaiproject.component.impl.SpringCompMgr;
 import org.sakaiproject.component.api.ComponentManager;
+import org.sakaiproject.component.impl.SpringCompMgr;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -74,11 +75,27 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 			// what component packages are there?
 			File[] packages = root.listFiles();
+
 			if (packages == null)
 			{
 				M_log.warn("load: empty directory: " + componentsRoot);
 				return;
 			}
+
+			// for testing, we might reverse load order
+			final int reverse = System.getProperty("sakai.components.reverse.load") != null ? -1 : 1;
+
+			// assure a consistent order - sort these files
+			Arrays.sort(packages, new Comparator()
+			{
+				public int compare(Object o1, Object o2)
+				{
+					File f1 = (File) o1;
+					File f2 = (File) o2;
+					int sort = f1.compareTo(f2);
+					return sort * reverse;
+				}
+			});
 
 			M_log.info("load: loading components from: " + componentsRoot);
 
