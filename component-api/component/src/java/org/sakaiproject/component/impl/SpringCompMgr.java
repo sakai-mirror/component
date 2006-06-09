@@ -525,10 +525,18 @@ public class SpringCompMgr implements ComponentManager
 			System.setProperty("sakai.serverId", serverId);
 		}
 
+		// for the request filter
 		String uploadMax = props.getProperty("content.upload.max");
 		if (uploadMax != null)
 		{
 			System.setProperty("sakai.content.upload.max", uploadMax);
+		}
+
+		// for the request filter
+		String uploadCeiling = props.getProperty("content.upload.ceiling");
+		if (uploadCeiling != null)
+		{
+			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
 		}
 
 		if (props.getProperty("force.url.secure") != null)
