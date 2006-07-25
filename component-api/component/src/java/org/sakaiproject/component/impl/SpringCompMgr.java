@@ -141,7 +141,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
@@ -157,7 +157,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// next layer in the sakai.propeties file from the sakai.home
@@ -171,7 +171,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// add then the local.properties from sakai.home
@@ -185,7 +185,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// add last the security.properties
@@ -199,7 +199,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// auto-set the server id if missing
@@ -211,7 +211,8 @@ public class SpringCompMgr implements ComponentManager
 				m_config.put("serverId", id);
 			}
 			catch (UnknownHostException e)
-			{
+			{	// empty catch block
+				M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
 			}
 		}
 
@@ -226,7 +227,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder values
@@ -238,7 +239,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 
 		// set some system properties from the configuration values
@@ -251,7 +252,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString());
+			M_log.warn(t.getMessage(), t);
 		}
 
 		try
@@ -261,7 +262,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.toString(), t);
+			M_log.warn(t.getMessage(), t);
 		}
 	}
 
@@ -296,7 +297,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (NoSuchBeanDefinitionException e)
 		{
-			M_log.info("get(" + iface.getName() + "): " + e);
+			M_log.info("get(" + iface.getName() + "): " + e, e);
 
 		}
 		catch (Throwable t)
@@ -320,7 +321,7 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (NoSuchBeanDefinitionException e)
 		{
-			M_log.info("get(" + ifaceName + "): " + e);
+			M_log.info("get(" + ifaceName + "): " + e, e);
 
 		}
 		catch (Throwable t)
@@ -423,7 +424,8 @@ public class SpringCompMgr implements ComponentManager
 			loader = (ComponentsLoader) Thread.currentThread().getContextClassLoader().loadClass(loaderClassName).newInstance();
 		}
 		catch (Throwable any)
-		{
+		{	// empty catch block
+			M_log.trace("Expected Throwable: " + any.getMessage(), any);
 		}
 
 		// next try this class's loader
@@ -434,7 +436,8 @@ public class SpringCompMgr implements ComponentManager
 				loader = (ComponentsLoader) getClass().getClassLoader().loadClass(loaderClassName).newInstance();
 			}
 			catch (Throwable any)
-			{
+			{	// empty catch block
+				M_log.trace("Expected Throwable: " + any.getMessage(), any);
 			}
 		}
 
@@ -549,7 +552,7 @@ public class SpringCompMgr implements ComponentManager
 			}
 			catch (Throwable e)
 			{
-				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"));
+				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"), e);
 			}
 		}
 	}
