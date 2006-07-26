@@ -39,6 +39,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.SakaiApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -91,7 +92,7 @@ public class SpringCompMgr implements ComponentManager
 		if (m_ac != null) return;
 
 		// create the AC, so that it loads these beans
-		m_ac = new ClassPathXmlApplicationContext("org/sakaiproject/config/shared_components.xml");
+		m_ac = new SakaiApplicationContext("org/sakaiproject/config/shared_components.xml");
 
 		// load component packages
 		loadComponents();
