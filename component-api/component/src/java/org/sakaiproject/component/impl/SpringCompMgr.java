@@ -38,7 +38,6 @@ import org.sakaiproject.util.PropertyOverrideConfigurer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.SakaiApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
@@ -298,8 +297,8 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (NoSuchBeanDefinitionException e)
 		{
-			M_log.info("get(" + iface.getName() + "): " + e, e);
-
+			// This is an expected outcome, we don't usually want logs
+			if (M_log.isDebugEnabled()) M_log.debug("get(" + iface.getName() + "): " + e, e);
 		}
 		catch (Throwable t)
 		{
@@ -322,8 +321,8 @@ public class SpringCompMgr implements ComponentManager
 		}
 		catch (NoSuchBeanDefinitionException e)
 		{
-			M_log.info("get(" + ifaceName + "): " + e, e);
-
+			// This is an expected outcome, we don't usually want logs
+			if (M_log.isDebugEnabled()) M_log.debug("get(" + ifaceName + "): " + e, e);
 		}
 		catch (Throwable t)
 		{
