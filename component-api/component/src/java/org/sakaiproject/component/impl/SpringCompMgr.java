@@ -95,6 +95,16 @@ public class SpringCompMgr implements ComponentManager
 
 		// load component packages
 		loadComponents();
+        
+		// create a shutdown task to close when the JVM closes
+		// Note: we used to close in removeChildAc() when the last child was gone, but if clildren are coming and going, that might not be the best time to shutdown -ggolden
+		Runtime.getRuntime().addShutdownHook(new Thread()
+		{
+			public void run()
+			{
+				close();
+			}
+		});
 
 		// find a path to sakai files on the app server - if not set, set it
 		String sakaiHomePath = System.getProperty("sakai.home");
@@ -485,17 +495,14 @@ public class SpringCompMgr implements ComponentManager
 	}
 
 	/**
-	 * Decrement the count of ACs that call this one parent. When we reach 0,
+	 * Decrement the count of ACs that call this one parent.
 	 */
 	public synchronized void removeChildAc()
 	{
 		m_childCount--;
 
-		// when we get back to 0, close our AC
-		if (m_childCount == 0)
-		{
-			close();
-		}
+		// Note: we used to close() when the m_childCount == 0, but to avoid early shutdown when children are going and coming,
+		// we do this in a jvm shutdown hook setup in init() now -ggolden
 	}
 
 	/**
