@@ -54,6 +54,9 @@ public class SpringCompMgr implements ComponentManager
 	/** Our log (commons). */
 	private static Log M_log = LogFactory.getLog(SpringCompMgr.class);
 
+	/** System property to control if we close on jvm shutdown (if set) or on the loss of our last child (if not set). */
+	protected final static String CLOSE_ON_SHUTDOWN = "sakai.component.closeonshutdown";
+
 	/** The Spring Application Context. */
 	protected ConfigurableApplicationContext m_ac = null;
 
@@ -96,15 +99,18 @@ public class SpringCompMgr implements ComponentManager
 		// load component packages
 		loadComponents();
         
-		// create a shutdown task to close when the JVM closes
-		// Note: we used to close in removeChildAc() when the last child was gone, but if clildren are coming and going, that might not be the best time to shutdown -ggolden
-		Runtime.getRuntime().addShutdownHook(new Thread()
+		// if configured (with the system property CLOSE_ON_SHUTDOWN set),  create a shutdown task to close when the JVM closes
+		// (otherwise we will close in removeChildAc() when the last child is gone)
+		if (System.getProperty(CLOSE_ON_SHUTDOWN) != null)
 		{
-			public void run()
+			Runtime.getRuntime().addShutdownHook(new Thread()
 			{
-				close();
-			}
-		});
+				public void run()
+				{
+					close();
+				}
+			});
+		}
 
 		// find a path to sakai files on the app server - if not set, set it
 		String sakaiHomePath = System.getProperty("sakai.home");
@@ -501,8 +507,11 @@ public class SpringCompMgr implements ComponentManager
 	{
 		m_childCount--;
 
-		// Note: we used to close() when the m_childCount == 0, but to avoid early shutdown when children are going and coming,
-		// we do this in a jvm shutdown hook setup in init() now -ggolden
+		// if we are not using the shutdown hook, close() when the m_childCount == 0
+		if ((m_childCount == 0) && (System.getProperty(CLOSE_ON_SHUTDOWN) == null))
+		{
+			close();
+		}
 	}
 
 	/**
