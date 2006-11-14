@@ -35,7 +35,9 @@ public class ServerConfigurationService
 {
 	public final static String CURRENT_SERVER_URL = org.sakaiproject.component.api.ServerConfigurationService.CURRENT_SERVER_URL;
 
-	/**
+	public final static String CURRENT_PORTAL_PATH = org.sakaiproject.component.api.ServerConfigurationService.CURRENT_PORTAL_PATH;
+
+   /**
 	 * Access the component instance: special cover only method.
 	 * 
 	 * @return the component instance.

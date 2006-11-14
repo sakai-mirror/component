@@ -36,6 +36,9 @@ public interface ServerConfigurationService
 	/** Key in the ThreadLocalManager for the serverUrl based on the current request. */
 	final static String CURRENT_SERVER_URL = "sakai:request.server.url";
 
+	/** Key in the ThreadLocalManager for the path based on the current request. */
+	final static String CURRENT_PORTAL_PATH = "sakai:request.portal.path";
+   
 	/**
 	 * Access the unique (to the cluster) id of the server.
 	 * 

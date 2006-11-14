@@ -273,7 +273,15 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getPortalUrl()
 	{
-		return getServerUrl() + (String) m_properties.get("portalPath");
+		String rv = (String) threadLocalManager().get(CURRENT_PORTAL_PATH);
+		if (rv == null)
+		{
+			rv = (String) m_properties.get("portalPath");
+		}
+
+		String portalUrl = getServerUrl() + rv;
+
+		return portalUrl;
 	}
 
 	/**
