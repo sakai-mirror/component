@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>master</artifactId>
+    <groupId>org.sakaiproject</groupId>
+    <version>M2</version>
+    <relativePath>../master/pom.xml</relativePath>
+  </parent>
+  <name>Sakai Component Project</name>
+  <groupId>org.sakaiproject</groupId>
+  <artifactId>component-base</artifactId>
+  <packaging>pom</packaging>
+  <modules>
+    <module>component-api/api</module>
+    <module>component-api/component</module>
+    <module>component-impl/impl</module>
+    <module>component-impl/pack</module>
+    <module>component-shared-deploy</module>
+  </modules>
+</project>
