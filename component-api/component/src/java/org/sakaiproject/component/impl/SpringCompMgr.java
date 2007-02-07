@@ -3,7 +3,7 @@
  * $Id$
  ***********************************************************************************
  *
- * Copyright (c) 2005, 2006 The Sakai Foundation.
+ * Copyright (c) 2005, 2006, 2007 The Sakai Foundation.
  * 
  * Licensed under the Educational Community License, Version 1.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -98,8 +98,8 @@ public class SpringCompMgr implements ComponentManager
 
 		// load component packages
 		loadComponents();
-        
-		// if configured (with the system property CLOSE_ON_SHUTDOWN set),  create a shutdown task to close when the JVM closes
+
+		// if configured (with the system property CLOSE_ON_SHUTDOWN set), create a shutdown task to close when the JVM closes
 		// (otherwise we will close in removeChildAc() when the last child is gone)
 		if (System.getProperty(CLOSE_ON_SHUTDOWN) != null)
 		{
@@ -161,62 +161,15 @@ public class SpringCompMgr implements ComponentManager
 		}
 
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
-		try
-		{
-			File f = new File(sakaiHomePath + "placeholder.properties");
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-				M_log
-						.warn("Deprecated use of placeholder.properties.  This file will not be read in future versions of Sakai.  Merge its content with the sakai.properties file.");
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// next layer in the sakai.propeties file from the sakai.home
-		try
-		{
-			File f = new File(sakaiHomePath + "sakai.properties");
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// add then the local.properties from sakai.home
-		try
-		{
-			File f = new File(sakaiHomePath + "local.properties");
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
+		readPropertyFile(
+				sakaiHomePath,
+				"placeholder.properties",
+				"Deprecated use of placeholder.properties.  This file will not be read in future versions of Sakai.  Merge its content with the sakai.properties file.");
+		readPropertyFile(sakaiHomePath, "sakai.properties");
+		readPropertyFile(sakaiHomePath, "local.properties");
 
 		// add last the security.properties
-		try
-		{
-			File f = new File(securityPath + "security.properties");
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
+		readPropertyFile(securityPath, "security.properties");
 
 		// auto-set the server id if missing
 		if (!m_config.containsKey("serverId"))
@@ -227,7 +180,7 @@ public class SpringCompMgr implements ComponentManager
 				m_config.put("serverId", id);
 			}
 			catch (UnknownHostException e)
-			{	// empty catch block
+			{ // empty catch block
 				M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
 			}
 		}
@@ -246,7 +199,8 @@ public class SpringCompMgr implements ComponentManager
 			M_log.warn(t.getMessage(), t);
 		}
 
-		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder values
+		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder
+		// values
 		try
 		{
 			PropertyPlaceholderConfigurer pullProcessor = new PropertyPlaceholderConfigurer();
@@ -275,6 +229,52 @@ public class SpringCompMgr implements ComponentManager
 		{
 			// get the singletons loaded
 			m_ac.getBeanFactory().preInstantiateSingletons();
+		}
+		catch (Throwable t)
+		{
+			M_log.warn(t.getMessage(), t);
+		}
+	}
+
+	/**
+	 * Read in a property file.
+	 * 
+	 * @param fileDirectory
+	 *        The file's path.
+	 * @param propertyFileName
+	 *        The file name.
+	 */
+	protected void readPropertyFile(String fileDirectory, String propertyFileName)
+	{
+		readPropertyFile(fileDirectory, propertyFileName, null);
+	}
+
+	/**
+	 * Read in a property file.
+	 * 
+	 * @param fileDirectory
+	 *        The file's path.
+	 * @param propertyFileName
+	 *        The file name.
+	 * @param loadMessage
+	 *        A message to show after loading.
+	 */
+	protected void readPropertyFile(String fileDirectory, String propertyFileName, String loadMessage)
+	{
+		try
+		{
+			File f = new File(fileDirectory + propertyFileName);
+			if (f.exists())
+			{
+				m_config.load(new FileInputStream(f));
+
+				if (loadMessage != null)
+				{
+					M_log.warn(loadMessage);
+				}
+
+				M_log.info("loaded properties file: " + fileDirectory + propertyFileName);
+			}
 		}
 		catch (Throwable t)
 		{
@@ -440,7 +440,7 @@ public class SpringCompMgr implements ComponentManager
 			loader = (ComponentsLoader) Thread.currentThread().getContextClassLoader().loadClass(loaderClassName).newInstance();
 		}
 		catch (Throwable any)
-		{	// empty catch block
+		{ // empty catch block
 			M_log.trace("Expected Throwable: " + any.getMessage(), any);
 		}
 
@@ -452,7 +452,7 @@ public class SpringCompMgr implements ComponentManager
 				loader = (ComponentsLoader) getClass().getClassLoader().loadClass(loaderClassName).newInstance();
 			}
 			catch (Throwable any)
-			{	// empty catch block
+			{ // empty catch block
 				M_log.trace("Expected Throwable: " + any.getMessage(), any);
 			}
 		}
@@ -588,7 +588,7 @@ public class SpringCompMgr implements ComponentManager
 	{
 		// Nothing really to do - the cover takes care of this -ggolden
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 */
