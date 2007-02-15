@@ -23,8 +23,10 @@ package org.sakaiproject.component.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -160,11 +162,16 @@ public class SpringCompMgr implements ComponentManager
 			M_log.warn(t.getMessage(), t);
 		}
 
+		// read all the files from the home path that are properties files
+		readDirectoryPropertiesFiles(sakaiHomePath);
+
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
 		readPropertyFile(
 				sakaiHomePath,
 				"placeholder.properties",
 				"Deprecated use of placeholder.properties.  This file will not be read in future versions of Sakai.  Merge its content with the sakai.properties file.");
+
+		// these are potentially re-reading, but later wins over earlier, so we assure the order is preserved
 		readPropertyFile(sakaiHomePath, "sakai.properties");
 		readPropertyFile(sakaiHomePath, "local.properties");
 
@@ -233,6 +240,42 @@ public class SpringCompMgr implements ComponentManager
 		catch (Throwable t)
 		{
 			M_log.warn(t.getMessage(), t);
+		}
+	}
+
+	/**
+	 * Get a sorted list of the properties files in the directory.
+	 * 
+	 * @param directoryPath
+	 *        The directory.
+	 * @return A sorted list of the properties files in the directory.
+	 */
+	protected String[] getPropertyFileList(String directoryPath)
+	{
+		File f = new File(directoryPath);
+		String[] filelist = f.list(new FilenameFilter()
+		{
+			public boolean accept(File f, String s)
+			{
+				return s.endsWith(".properties");
+			}
+		});
+
+		Arrays.sort(filelist);
+		return filelist;
+	}
+
+	/**
+	 * Read in the properties files from this directory.
+	 * 
+	 * @param directoryPath
+	 *        The directory.
+	 */
+	protected void readDirectoryPropertiesFiles(String directoryPath)
+	{
+		for (String propertiesFile : getPropertyFileList(directoryPath))
+		{
+			readPropertyFile(directoryPath, propertiesFile);
 		}
 	}
 
