@@ -163,7 +163,8 @@ public class SpringCompMgr implements ComponentManager
 		}
 
 		// read all the files from the home path that are properties files
-		readDirectoryPropertiesFiles(sakaiHomePath);
+		// TODO: not quite yet -ggolden
+		// readDirectoryPropertiesFiles(sakaiHomePath);
 
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
 		readPropertyFile(
