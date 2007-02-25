@@ -602,6 +602,13 @@ public class SpringCompMgr implements ComponentManager
 			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
 		}
 
+		// for the request filter
+		String uploadDir = props.getProperty("content.upload.dir");
+		if (uploadDir != null)
+		{
+			System.setProperty("sakai.content.upload.dir", uploadDir);
+		}
+
 		if (props.getProperty("force.url.secure") != null)
 		{
 			try
