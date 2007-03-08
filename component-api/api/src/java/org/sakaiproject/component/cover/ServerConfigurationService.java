@@ -3,7 +3,7 @@
  * $Id$
  ***********************************************************************************
  *
- * Copyright (c) 2003, 2004, 2005, 2006 The Sakai Foundation.
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007 The Sakai Foundation.
  * 
  * Licensed under the Educational Community License, Version 1.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -108,6 +108,14 @@ public class ServerConfigurationService
 		if (service == null) return null;
 
 		return service.getAccessUrl();
+	}
+
+	public static java.lang.String getAccessPath()
+	{
+		org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
+		if (service == null) return null;
+
+		return service.getAccessPath();
 	}
 
 	public static java.lang.String getHelpUrl(java.lang.String param0)
