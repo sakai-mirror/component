@@ -95,8 +95,7 @@ public class SpringCompMgr implements ComponentManager
 	{
 		if (m_ac != null) return;
 
-		// create the AC, so that it loads these beans
-		m_ac = new SakaiApplicationContext("org/sakaiproject/config/shared_components.xml");
+		m_ac = new SakaiApplicationContext();
 
 		// load component packages
 		loadComponents();
@@ -236,7 +235,7 @@ public class SpringCompMgr implements ComponentManager
 		try
 		{
 			// get the singletons loaded
-			m_ac.getBeanFactory().preInstantiateSingletons();
+			m_ac.refresh();
 		}
 		catch (Throwable t)
 		{
