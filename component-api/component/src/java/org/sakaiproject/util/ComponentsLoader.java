@@ -38,6 +38,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 /**
  * <p>
@@ -147,8 +148,38 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 			// make a reader
 			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) ac.getBeanFactory());
-
-			reader.loadBeanDefinitions(new FileSystemResource(xml.getCanonicalPath()));
+			Resource[] beanDefs = null;
+			
+			// Load the demo components, if necessary
+			File demoXml = new File(webinf, "components-demo.xml");
+			if("true".equalsIgnoreCase(System.getProperty("sakai.demo")))
+			{
+				if(M_log.isDebugEnabled()) M_log.debug("Attempting to load demo components");
+				if(demoXml.exists())
+				{
+					if(M_log.isInfoEnabled()) M_log.info("Loading demo components from " + dir);
+					beanDefs = new Resource[]
+					{
+							new FileSystemResource(xml.getCanonicalPath()),
+							new FileSystemResource(demoXml.getCanonicalPath())
+					};
+				}
+			}
+			else
+			{
+				if(demoXml.exists())
+				{
+					// Only log that we're skipping the demo components if they exist
+					if(M_log.isInfoEnabled()) M_log.info("Skipping demo components from " + dir);
+				}
+			}
+			
+			if(beanDefs == null)
+			{
+				beanDefs = new Resource[] {new FileSystemResource(xml.getCanonicalPath())};
+			}
+			
+			reader.loadBeanDefinitions(beanDefs);
 		}
 		catch (Throwable t)
 		{
