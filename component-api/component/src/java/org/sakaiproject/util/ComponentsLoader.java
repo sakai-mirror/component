@@ -148,6 +148,11 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 			// make a reader
 			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) ac.getBeanFactory());
+			
+			// In Spring 2, classes aren't loaded during bean parsing unless this
+			// classloader property is set.
+			reader.setBeanClassLoader(loader);
+			
 			Resource[] beanDefs = null;
 			
 			// Load the demo components, if necessary
