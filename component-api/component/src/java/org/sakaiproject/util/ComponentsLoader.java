@@ -188,7 +188,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 		}
 		catch (Throwable t)
 		{
-			M_log.warn("loadComponentPackage: exception loading: " + xml + " : " + t);
+			M_log.warn("loadComponentPackage: exception loading: " + xml + " : " + t,t);
 		}
 		finally
 		{
