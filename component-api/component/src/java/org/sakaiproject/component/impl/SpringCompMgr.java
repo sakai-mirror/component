@@ -36,11 +36,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ComponentsLoader;
+import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.PropertyOverrideConfigurer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.SakaiApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -95,7 +96,7 @@ public class SpringCompMgr implements ComponentManager
 	{
 		if (m_ac != null) return;
 
-		m_ac = new SakaiApplicationContext();
+		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
 
 		// load component packages
 		loadComponents();
