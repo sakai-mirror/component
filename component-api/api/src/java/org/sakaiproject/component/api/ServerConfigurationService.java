@@ -22,6 +22,7 @@
 package org.sakaiproject.component.api;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -216,4 +217,26 @@ public interface ServerConfigurationService
 	 * @return A list of tool ids (String) for this category to use by default, or an empty list if there are none for this category.
 	 */
 	List getDefaultTools(String category);
+
+   /**
+    * access the list of tool categories for the given site type
+    *
+    * @param category the site type
+    * @return a list of tool category ids in order
+    */
+   List<String> getToolCategories(String category);
+
+   /**
+    * access the map of tool categories to tool ids for this site type
+    * @param category the site type
+    * @return a map of tool category ids to tool ids
+    */
+   Map<String, List<String>> getToolCategoriesAsMap(String category);
+
+   /**
+    * access a map of tool id to tool category id for this site type
+    * @param category the site type
+    * @return map with tool id as key and category id as value
+    */
+   Map<String, String> getToolToCategoryMap(String category);
 }

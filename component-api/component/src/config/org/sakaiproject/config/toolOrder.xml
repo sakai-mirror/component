@@ -66,4 +66,40 @@
 
 	</category>
 
+	<category name="portfolio">
+		<tool id = "sakai.iframe.site" />
+		<tool id = "sakai.synoptic.chat" />
+		<tool id = "sakai.synoptic.discussion" />
+		<tool id = "sakai.synoptic.announcement" />
+		<tool id = "home" selected = "true" />
+
+      <toolCategory name="cat 1">
+         <tool id = "sakai.syllabus" selected="true" />
+         <tool id = "sakai.schedule" selected="true" />
+         <tool id = "sakai.announcements" selected="true" />
+         <tool id = "sakai.resources" selected="true" />
+         <tool id = "sakai.discussion" selected="true" />
+      </toolCategory>
+      
+      <tool id = "sakai.assignment" selected="true" />
+   
+      <toolCategory name="cat 2">
+         <tool id = "sakai.assignment.grades" selected="true" />
+         <tool id = "sakai.samigo" selected="true" />
+         <tool id = "sakai.gradebook.tool" selected="true" />
+         <tool id = "sakai.dropbox" selected="true" />
+         <tool id = "sakai.chat" selected="true" />
+         <tool id = "sakai.rwiki" selected="true" />
+         <tool id = "sakai.mailbox" selected="true" />
+      </toolCategory>
+      
+      <tool id = "sakai.news" selected="true" />
+		<tool id = "sakai.iframe" />
+		<tool id = "sakai.presentation" />
+		<tool id = "sakai.sections" />
+		<tool id = "sakai.site.roster" />
+		<tool id = "sakai.siteinfo" required = "true" />
+
+	</category>
+
 </toolOrder>

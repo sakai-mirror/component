@@ -76,8 +76,18 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 
 	/** default tools - map keyed by category of List of tool id strings. */
 	protected Map m_defaultTools = new HashMap();
+   
+   /** default tool categories in order mapped by site type */
+   protected Map<String, List<String>> m_toolCategoriesList = new HashMap();
+   
+   /** default tool categories to tool id maps mapped by site type */
+   protected Map<String, Map<String, List<String>>> m_toolCategoriesMap = new HashMap();
+   
+   /** default tool id to tool category maps mapped by site type */
+   protected Map<String, Map<String, String>> m_toolToToolCategoriesMap = new HashMap();
+   
 
-	/**********************************************************************************************************************************************************************************************************************************************************
+   /**********************************************************************************************************************************************************************************************************************************************************
 	 * Dependencies
 	 *********************************************************************************************************************************************************************************************************************************************************/
 
@@ -500,6 +510,57 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public List<String> getToolCategories(String category)
+	{
+		if (category != null)
+		{
+			List<String> categories = m_toolCategoriesList.get(category);
+			if (categories != null)
+			{
+				return categories;
+			}
+		}
+
+		return new Vector();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Map<String, List<String>> getToolCategoriesAsMap(String category)
+	{
+		if (category != null)
+		{
+			Map<String, List<String>> categories = m_toolCategoriesMap.get(category);
+			if (categories != null)
+			{
+				return categories;
+			}
+		}
+
+		return new HashMap();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public Map<String, String> getToolToCategoryMap(String category)
+	{
+		if (category != null)
+		{
+			Map<String, String> categories = m_toolToToolCategoriesMap.get(category);
+			if (categories != null)
+			{
+				return categories;
+			}
+		}
+
+		return new HashMap();
+	}
+
+	/**
 	 * Load this single file as a registration file, loading tools and locks.
 	 * 
 	 * @param in
@@ -541,8 +602,17 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 						m_toolsRequired.put(name, required);
 						List defaultTools = new Vector();
 						m_defaultTools.put(name, defaultTools);
+                  
+                  List<String> toolCategories = new Vector();
+                  m_toolCategoriesList.put(name, toolCategories);
 
-						// get the kids
+                  Map<String, List<String>> toolCategoryMappings = new HashMap();
+                  m_toolCategoriesMap.put(name, toolCategoryMappings);
+                  
+                  Map<String, String> toolToCategoryMap = new HashMap();
+                  m_toolToToolCategoriesMap.put(name, toolToCategoryMap);
+
+                  // get the kids
 						NodeList nodes = rootElement.getChildNodes();
 						final int nodesLength = nodes.getLength();
 						for (int c = 0; c < nodesLength; c++)
@@ -553,28 +623,63 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 
 							if (element.getTagName().equals("tool"))
 							{
-								String id = StringUtil.trimToNull(element.getAttribute("id"));
-								if (id != null)
-								{
-									order.add(id);
-								}
-
-								String req = StringUtil.trimToNull(element.getAttribute("required"));
-								if ((req != null) && (Boolean.TRUE.toString().equalsIgnoreCase(req)))
-								{
-									required.add(id);
-								}
-
-								String sel = StringUtil.trimToNull(element.getAttribute("selected"));
-								if ((sel != null) && (Boolean.TRUE.toString().equalsIgnoreCase(sel)))
-								{
-									defaultTools.add(id);
-								}
-							}
-						}
+                        processTool(element, order, required, defaultTools);
+                     }
+                     else if (element.getTagName().equals("toolCategory")) {
+                        processCategory(element, order, required, defaultTools, 
+                           toolCategories, toolCategoryMappings, toolToCategoryMap);
+                     }
+                  }
 					}
 				}
 			}
 		}
 	}
+
+   protected void processCategory(Element element, List order, List required,
+                                  List defaultTools, List<String> toolCategories,
+                                  Map<String, List<String>> toolCategoryMappings, 
+                                  Map<String, String> toolToCategoryMap) {
+      String name = StringUtil.trimToNull(element.getAttribute("name"));
+      toolCategories.add(name);
+      List<String> toolCategoryTools = new Vector();
+      toolCategoryMappings.put(name, toolCategoryTools);
+      
+      NodeList nodes = element.getChildNodes();
+      final int nodesLength = nodes.getLength();
+      for (int c = 0; c < nodesLength; c++)
+      {
+         Node node = nodes.item(c);
+         if (node.getNodeType() != Node.ELEMENT_NODE) continue;
+         Element toolElement = (Element) node;
+
+         if (toolElement.getTagName().equals("tool"))
+         {
+            String id = processTool(toolElement, order, required, defaultTools);
+            toolCategoryTools.add(id);
+            toolToCategoryMap.put(id, name);
+         }
+      }      
+   }
+
+   protected String processTool(Element element, List order, List required, List defaultTools) {
+      String id = StringUtil.trimToNull(element.getAttribute("id"));
+      if (id != null)
+      {
+         order.add(id);
+      }
+
+      String req = StringUtil.trimToNull(element.getAttribute("required"));
+      if ((req != null) && (Boolean.TRUE.toString().equalsIgnoreCase(req)))
+      {
+         required.add(id);
+      }
+
+      String sel = StringUtil.trimToNull(element.getAttribute("selected"));
+      if ((sel != null) && (Boolean.TRUE.toString().equalsIgnoreCase(sel)))
+      {
+         defaultTools.add(id);
+      }
+      return id;
+   }
 }
