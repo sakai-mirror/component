@@ -72,34 +72,51 @@
 		<tool id = "sakai.synoptic.discussion" />
 		<tool id = "sakai.synoptic.announcement" />
 		<tool id = "home" selected = "true" />
-
-      <toolCategory name="cat 1">
-         <tool id = "sakai.syllabus" selected="true" />
-         <tool id = "sakai.schedule" selected="true" />
-         <tool id = "sakai.announcements" selected="true" />
-         <tool id = "sakai.resources" selected="true" />
-         <tool id = "sakai.discussion" selected="true" />
+      <toolCategory id="communicate">
+         <name><![CDATA[Communicate]]></name>
+         <tool id = "sakai.announcements"/>
+         <tool id = "sakai.schedule"/>
+         <tool id = "sakai.discussion"/>
+         <tool id = "sakai.chat"/>
+         <tool id = "sakai.rwiki"/>
+         <tool id = "sakai.news"/>
+         <tool id = "sakai.iframe" />
+   		<tool id = "sakai.mailbox" />
       </toolCategory>
-      
-      <tool id = "sakai.assignment" selected="true" />
-   
-      <toolCategory name="cat 2">
-         <tool id = "sakai.assignment.grades" selected="true" />
-         <tool id = "sakai.samigo" selected="true" />
-         <tool id = "sakai.gradebook.tool" selected="true" />
-         <tool id = "sakai.dropbox" selected="true" />
-         <tool id = "sakai.chat" selected="true" />
-         <tool id = "sakai.rwiki" selected="true" />
-         <tool id = "sakai.mailbox" selected="true" />
+      <toolCategory id="collectReflect">
+         <name><![CDATA[Collect & Reflect]]></name>
+         <tool id = "sakai.resources" />
+         <tool id = "osp.wizard" />
+         <tool id = "osp.matrix" />
       </toolCategory>
-      
-      <tool id = "sakai.news" selected="true" />
-		<tool id = "sakai.iframe" />
-		<tool id = "sakai.presentation" />
-		<tool id = "sakai.sections" />
-		<tool id = "sakai.site.roster" />
-		<tool id = "sakai.siteinfo" required = "true" />
-
+      <toolCategory id="designPublish">
+         <name><![CDATA[Design & Publish]]></name>
+         <tool id = "osp.presentation" />
+         <tool id = "osp.style" />
+         <tool id = "osp.presLayout" />
+      </toolCategory>
+      <toolCategory id="guide">
+         <name><![CDATA[Guide]]></name>
+         <tool id = "osp.presTemplate"/>
+         <tool id = "osp.glossary"/>
+         <tool id = "sakai.metaobj"/>
+         <tool id = "sakai.datapoint"/>
+         <tool id = "sakai.gmt"/>
+      </toolCategory>
+      <toolCategory id="reviewEvaluate">
+         <name><![CDATA[Review & Evaluate]]></name>
+         <tool id = "osp.evaluation"/>
+      </toolCategory>
+      <toolCategory id="analyzeReport">
+         <name><![CDATA[Analyze & Report]]></name>
+         <tool id="sakai.reports"/>
+      </toolCategory>
+      <toolCategory id="manage">
+         <name><![CDATA[Manage]]></name>
+   		<tool id = "sakai.siteinfo" required = "true" />
+         <tool id = "sakai.sections" />
+         <tool id = "sakai.site.roster" />
+      </toolCategory>
 	</category>
 
 </toolOrder>

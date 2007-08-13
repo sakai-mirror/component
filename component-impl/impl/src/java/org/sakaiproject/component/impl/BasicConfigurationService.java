@@ -640,7 +640,14 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
                                   List defaultTools, List<String> toolCategories,
                                   Map<String, List<String>> toolCategoryMappings, 
                                   Map<String, String> toolToCategoryMap) {
-      String name = StringUtil.trimToNull(element.getAttribute("name"));
+      String name = element.getAttribute("id");      
+      NodeList nameList = element.getElementsByTagName("name");
+      
+      if (nameList.getLength() > 0) {
+         Element nameElement = (Element) nameList.item(0);
+         name = nameElement.getTextContent();
+      }
+      
       toolCategories.add(name);
       List<String> toolCategoryTools = new Vector();
       toolCategoryMappings.put(name, toolCategoryTools);
