@@ -23,6 +23,9 @@ package org.sakaiproject.component.cover;
 
 import org.sakaiproject.component.cover.ComponentManager;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>
  * ServerConfigurationService is a static Cover for the {@link org.sakaiproject.component.api.ServerConfigurationService ServerConfigurationService}; see that interface for usage details.
@@ -237,4 +240,47 @@ public class ServerConfigurationService
 
 		return service.getInt(param0, param1);
 	}
+
+
+   /**
+    * access the list of tool categories for the given site type
+    *
+    * @param category the site type
+    * @return a list of tool category ids in order
+    */
+   public static List<String> getToolCategories(String category)
+   {
+      org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
+      if (service == null) return null;
+
+      return service.getToolCategories(category);
+   }
+
+   /**
+    * access the map of tool categories to tool ids for this site type
+    * @param category the site type
+    * @return a map of tool category ids to tool ids
+    */
+   public static Map<String, List<String>> getToolCategoriesAsMap(String category)
+   {
+      org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
+      if (service == null) return null;
+
+      return service.getToolCategoriesAsMap(category);
+   }
+
+   /**
+    * access a map of tool id to tool category id for this site type
+    * @param category the site type
+    * @return map with tool id as key and category id as value
+    */
+   public static Map<String, String> getToolToCategoryMap(String category)
+   {
+      org.sakaiproject.component.api.ServerConfigurationService service = getInstance();
+      if (service == null) return null;
+
+      return service.getToolToCategoryMap(category);
+   }
+
+
 }
