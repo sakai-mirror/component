@@ -23,6 +23,8 @@ package org.sakaiproject.util;
 
 import javax.servlet.ServletContextEvent;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.impl.ContextLoader;
 import org.sakaiproject.component.impl.SpringCompMgr;
@@ -34,6 +36,8 @@ import org.sakaiproject.component.impl.SpringCompMgr;
  */
 public class ContextLoaderListener extends org.springframework.web.context.ContextLoaderListener
 {
+	private static final Log log = LogFactory.getLog(ContextLoaderListener.class);
+
 	/**
 	 * Create the ContextLoader to use. Can be overridden in subclasses.
 	 * 
@@ -61,6 +65,8 @@ public class ContextLoaderListener extends org.springframework.web.context.Conte
 	public void contextDestroyed(ServletContextEvent event)
 	{
 		super.contextDestroyed(event);
+		
+		log.info("Destroying Components in "+event.getServletContext().getServletContextName());
 
 		// decrement the count of children for the component manager
 		((SpringCompMgr) ComponentManager.getInstance()).removeChildAc();
