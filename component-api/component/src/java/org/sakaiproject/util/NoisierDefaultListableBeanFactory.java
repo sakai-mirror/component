@@ -39,8 +39,8 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory {
 	
 	public void preInstantiateSingletons() throws BeansException {
-		if (logger.isInfoEnabled()) {
-			logger.info("Pre-instantiating singletons in factory [" + this + "]");
+		if (logger.isDebugEnabled()) {
+			logger.debug("Pre-instantiating singletons in factory [" + this + "]");
 		}
 		
 		// The superclass's variable by this name is declared private.
