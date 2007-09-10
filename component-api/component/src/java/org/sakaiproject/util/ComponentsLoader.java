@@ -45,7 +45,7 @@ import org.springframework.core.io.Resource;
  * Load the available Sakai components into the shared component manager's Spring ApplicationContext
  * </p>
  */
-public class ComponentsLoader implements org.sakaiproject.component.api.ComponentsLoader
+public class ComponentsLoader
 {
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);

@@ -35,7 +35,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
-import org.sakaiproject.component.api.ComponentsLoader;
+import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.PropertyOverrideConfigurer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -487,68 +487,32 @@ public class SpringCompMgr implements ComponentManager
 	 */
 	protected void loadComponents()
 	{
-		// see if we can find a components loader
-		ComponentsLoader loader = null;
+		ComponentsLoader loader = new ComponentsLoader();
 
-		// TODO: configure this?
-		String loaderClassName = "org.sakaiproject.util.ComponentsLoader";
-
-		// first see if it can be located via the thread class loader
-		try
+		// locate the components root
+		// if we have our system property set, use it
+		String componentsRoot = System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP);
+		if (componentsRoot == null)
 		{
-			loader = (ComponentsLoader) Thread.currentThread().getContextClassLoader().loadClass(loaderClassName).newInstance();
-		}
-		catch (Throwable any)
-		{ // empty catch block
-			M_log.trace("Expected Throwable: " + any.getMessage(), any);
-		}
-
-		// next try this class's loader
-		if (loader == null)
-		{
-			try
+			// if we are in Catalina, place it at ${catalina.home}/components/
+			String catalina = getCatalina();
+			if (catalina != null)
 			{
-				loader = (ComponentsLoader) getClass().getClassLoader().loadClass(loaderClassName).newInstance();
-			}
-			catch (Throwable any)
-			{ // empty catch block
-				M_log.trace("Expected Throwable: " + any.getMessage(), any);
+				componentsRoot = catalina + File.separatorChar + "components" + File.separatorChar;
 			}
 		}
 
-		// if we found the class
-		if (loader != null)
+		if (componentsRoot == null)
 		{
-			// locate the components root
-			// if we have our system property set, use it
-			String componentsRoot = System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP);
-			if (componentsRoot == null)
-			{
-				// if we are in Catalina, place it at ${catalina.home}/components/
-				String catalina = getCatalina();
-				if (catalina != null)
-				{
-					componentsRoot = catalina + File.separatorChar + "components" + File.separatorChar;
-				}
-			}
-
-			if (componentsRoot == null)
-			{
-				M_log.warn("loadComponents: cannot estabish a root directory for the components packages");
-				return;
-			}
-
-			// make sure this is set
-			System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
-
-			// load components
-			loader.load(this, componentsRoot);
+			M_log.warn("loadComponents: cannot estabish a root directory for the components packages");
+			return;
 		}
 
-		else
-		{
-			M_log.warn("loadComponents: no component loader class found");
-		}
+		// make sure this is set
+		System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
+
+		// load components
+		loader.load(this, componentsRoot);
 	}
 
 	/**
@@ -629,7 +593,7 @@ public class SpringCompMgr implements ComponentManager
 			try
 			{
 				// make sure it is an int
-				int port = Integer.parseInt(props.getProperty("force.url.secure"));
+				Integer.parseInt(props.getProperty("force.url.secure"));
 				System.setProperty("sakai.force.url.secure", props.getProperty("force.url.secure"));
 			}
 			catch (Throwable e)
