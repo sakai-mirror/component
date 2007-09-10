@@ -133,6 +133,21 @@ public class SpringCompMgr implements ComponentManager
 		}
 		if (!sakaiHomePath.endsWith(File.separator)) sakaiHomePath = sakaiHomePath + File.separatorChar;
 
+		final File sakaiHomeDirectory = new File(sakaiHomePath);
+		if(!sakaiHomeDirectory.exists()) // no sakai.home directory exists, try to create one
+		{
+			if(sakaiHomeDirectory.mkdir())
+			{
+				M_log.debug("Created sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+			else
+			{
+				M_log.warn("Could not create sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+		}
+		
 		// make sure it's set properly
 		System.setProperty("sakai.home", sakaiHomePath);
 
