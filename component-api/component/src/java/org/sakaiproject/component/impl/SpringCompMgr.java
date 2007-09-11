@@ -22,11 +22,6 @@
 package org.sakaiproject.component.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -35,6 +30,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
+import org.sakaiproject.component.api.ConfigurationLoader;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.PropertyOverrideConfigurer;
@@ -42,7 +38,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * <p>
@@ -74,6 +69,8 @@ public class SpringCompMgr implements ComponentManager
 
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
+	
+	private ConfigurationLoader configurationLoader;
 
 	/**
 	 * Initialize.
@@ -150,63 +147,10 @@ public class SpringCompMgr implements ComponentManager
 		
 		// make sure it's set properly
 		System.setProperty("sakai.home", sakaiHomePath);
-
-		// check for the security home
-		String securityPath = System.getProperty("sakai.security");
-		if (securityPath != null)
-		{
-			// make sure it's properly slashed
-			if (!securityPath.endsWith(File.separator)) securityPath = securityPath + File.separatorChar;
-			System.setProperty("sakai.security", securityPath);
-		}
-
-		// Collect values from all the properties files: the later ones loaded override settings from prior.
-		m_config = new Properties();
-
-		// start with the distributed defaults from the classpath
-		try
-		{
-			ClassPathResource rsrc = new ClassPathResource("org/sakaiproject/config/sakai.properties");
-			if (rsrc.exists())
-			{
-				m_config.load(rsrc.getInputStream());
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// read all the files from the home path that are properties files
-		// TODO: not quite yet -ggolden
-		// readDirectoryPropertiesFiles(sakaiHomePath);
-
-		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
-		readPropertyFile(
-				sakaiHomePath,
-				"placeholder.properties",
-				"Deprecated use of placeholder.properties.  This file will not be read in future versions of Sakai.  Merge its content with the sakai.properties file.");
-
-		// these are potentially re-reading, but later wins over earlier, so we assure the order is preserved
-		readPropertyFile(sakaiHomePath, "sakai.properties");
-		readPropertyFile(sakaiHomePath, "local.properties");
-
-		// add last the security.properties
-		readPropertyFile(securityPath, "security.properties");
-
-		// auto-set the server id if missing
-		if (!m_config.containsKey("serverId"))
-		{
-			try
-			{
-				String id = InetAddress.getLocalHost().getHostName();
-				m_config.put("serverId", id);
-			}
-			catch (UnknownHostException e)
-			{ // empty catch block
-				M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
-			}
-		}
+		
+		// Collect values from all the properties files.
+		configurationLoader = (ConfigurationLoader)m_ac.getBean("org.sakaiproject.component.api.ConfigurationLoader");
+		m_config = configurationLoader.getProperties();
 
 		// post process the definitions from components with overrides from these properties
 		// - these get injected into the beans
@@ -235,9 +179,6 @@ public class SpringCompMgr implements ComponentManager
 			M_log.warn(t.getMessage(), t);
 		}
 
-		// set some system properties from the configuration values
-		promotePropertiesToSystem(m_config);
-
 		// get our special log handler started before the rest
 		try
 		{
@@ -252,88 +193,6 @@ public class SpringCompMgr implements ComponentManager
 		{
 			// get the singletons loaded
 			m_ac.refresh();
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-	}
-
-	/**
-	 * Get a sorted list of the properties files in the directory.
-	 * 
-	 * @param directoryPath
-	 *        The directory.
-	 * @return A sorted list of the properties files in the directory.
-	 */
-	protected String[] getPropertyFileList(String directoryPath)
-	{
-		File f = new File(directoryPath);
-		String[] filelist = f.list(new FilenameFilter()
-		{
-			public boolean accept(File f, String s)
-			{
-				return s.endsWith(".properties");
-			}
-		});
-
-		Arrays.sort(filelist);
-		return filelist;
-	}
-
-	/**
-	 * Read in the properties files from this directory.
-	 * 
-	 * @param directoryPath
-	 *        The directory.
-	 */
-	protected void readDirectoryPropertiesFiles(String directoryPath)
-	{
-		for (String propertiesFile : getPropertyFileList(directoryPath))
-		{
-			readPropertyFile(directoryPath, propertiesFile);
-		}
-	}
-
-	/**
-	 * Read in a property file.
-	 * 
-	 * @param fileDirectory
-	 *        The file's path.
-	 * @param propertyFileName
-	 *        The file name.
-	 */
-	protected void readPropertyFile(String fileDirectory, String propertyFileName)
-	{
-		readPropertyFile(fileDirectory, propertyFileName, null);
-	}
-
-	/**
-	 * Read in a property file.
-	 * 
-	 * @param fileDirectory
-	 *        The file's path.
-	 * @param propertyFileName
-	 *        The file name.
-	 * @param loadMessage
-	 *        A message to show after loading.
-	 */
-	protected void readPropertyFile(String fileDirectory, String propertyFileName, String loadMessage)
-	{
-		try
-		{
-			File f = new File(fileDirectory + propertyFileName);
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-
-				if (loadMessage != null)
-				{
-					M_log.warn(loadMessage);
-				}
-
-				M_log.info("loaded properties file: " + fileDirectory + propertyFileName);
-			}
 		}
 		catch (Throwable t)
 		{
@@ -551,56 +410,6 @@ public class SpringCompMgr implements ComponentManager
 		}
 
 		return catalina;
-	}
-
-	/**
-	 * If the properties has any of the values we need to set as sakai system properties, set them.
-	 * 
-	 * @param props
-	 *        The property override configurer with some override settings.
-	 */
-	protected void promotePropertiesToSystem(Properties props)
-	{
-		String serverId = props.getProperty("serverId");
-		if (serverId != null)
-		{
-			System.setProperty("sakai.serverId", serverId);
-		}
-
-		// for the request filter
-		String uploadMax = props.getProperty("content.upload.max");
-		if (uploadMax != null)
-		{
-			System.setProperty("sakai.content.upload.max", uploadMax);
-		}
-
-		// for the request filter
-		String uploadCeiling = props.getProperty("content.upload.ceiling");
-		if (uploadCeiling != null)
-		{
-			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
-		}
-
-		// for the request filter
-		String uploadDir = props.getProperty("content.upload.dir");
-		if (uploadDir != null)
-		{
-			System.setProperty("sakai.content.upload.dir", uploadDir);
-		}
-
-		if (props.getProperty("force.url.secure") != null)
-		{
-			try
-			{
-				// make sure it is an int
-				Integer.parseInt(props.getProperty("force.url.secure"));
-				System.setProperty("sakai.force.url.secure", props.getProperty("force.url.secure"));
-			}
-			catch (Throwable e)
-			{
-				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"), e);
-			}
-		}
 	}
 
 	/**

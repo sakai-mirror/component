@@ -21,7 +21,6 @@
 
 package org.sakaiproject.component.api;
 
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -101,13 +100,6 @@ public interface ComponentManager
 	 * Close the component manager, shutting down any created singletons.
 	 */
 	void close();
-
-	/**
-	 * Access the configuration properties used when configuring components.
-	 * 
-	 * @return The Properties with the configuration values used when configuring components.
-	 */
-	Properties getConfig();
 
 	/**
 	 * Wait right here till the component manager is fully configured.

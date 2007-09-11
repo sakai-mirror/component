@@ -31,12 +31,11 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
+import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
-import org.sakaiproject.tool.api.SessionManager;
 import org.springframework.core.io.ClassPathResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -100,6 +99,8 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 * @return the SessionManager collaborator.
 	 */
 	protected abstract SessionManager sessionManager();
+	
+	protected BasicConfigurationLoader configurationLoader;
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Configuration
@@ -137,7 +138,8 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	public void init()
 	{
 		// load the properties, from the configuration manager's set of properties that were used to configure the components
-		m_properties.putAll(ComponentManager.getConfig());
+		if (M_log.isDebugEnabled()) M_log.debug("About to load properties from " + configurationLoader);
+		m_properties.putAll(configurationLoader.getProperties());
 
 		try
 		{
@@ -689,4 +691,8 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 								}
       return id;
 	}
+
+   public void setConfigurationLoader(BasicConfigurationLoader configurationLoader) {
+	   this.configurationLoader = configurationLoader;
+   }
 }

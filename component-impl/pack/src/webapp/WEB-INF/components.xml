@@ -14,6 +14,12 @@
 		<lookup-method name="sessionManager" bean="org.sakaiproject.tool.api.SessionManager" />
 
 		<property name="toolOrderFile"><value>toolOrder.xml</value></property>
+		<property name="configurationLoader" ref="org.sakaiproject.component.api.ConfigurationLoader"/>
+	</bean>
+	
+	<bean id="org.sakaiproject.component.api.ConfigurationLoader" class="org.sakaiproject.component.impl.BasicConfigurationLoader"
+		init-method="init"
+		singleton="true">
 	</bean>
 
 </beans>
