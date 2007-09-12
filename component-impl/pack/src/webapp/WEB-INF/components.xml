@@ -1,25 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-
-<beans>
-
-	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
-			class="org.sakaiproject.component.impl.BasicConfigurationService"
-			init-method="init"
-			destroy-method="destroy"
-			singleton="true">
-
-		<lookup-method name="threadLocalManager" bean="org.sakaiproject.thread_local.api.ThreadLocalManager" />
-		<lookup-method name="sessionManager" bean="org.sakaiproject.tool.api.SessionManager" />
-
-		<property name="toolOrderFile"><value>toolOrder.xml</value></property>
-		<property name="configurationLoader" ref="org.sakaiproject.component.api.ConfigurationLoader"/>
-	</bean>
-	
-	<bean id="org.sakaiproject.component.api.ConfigurationLoader" class="org.sakaiproject.component.impl.BasicConfigurationLoader"
-		init-method="init"
-		singleton="true">
-	</bean>
+	<import resource="classpath*:META-INF/spring/configurationService.xml" />
 
 </beans>

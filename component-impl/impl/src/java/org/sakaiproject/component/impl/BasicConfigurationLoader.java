@@ -31,7 +31,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ConfigurationLoader;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 /**
  *
@@ -40,9 +40,12 @@ public class BasicConfigurationLoader implements ConfigurationLoader {
 	private static Log M_log = LogFactory.getLog(BasicConfigurationLoader.class);
 	
 	private Properties properties;
+	private Resource defaultSakaiPropertiesResource;
 	
 	public void init() {
 		properties = new Properties();
+		
+		if (M_log.isDebugEnabled()) M_log.debug("defaultSakaiPropertiesResource=" + defaultSakaiPropertiesResource);
 		
 		String sakaiHomePath = System.getProperty("sakai.home");
 
@@ -60,20 +63,12 @@ public class BasicConfigurationLoader implements ConfigurationLoader {
 		// Start with the distributed defaults from the classpath
 		try
 		{
-			ClassPathResource rsrc = new ClassPathResource("org/sakaiproject/config/sakai.properties");
-			if (rsrc.exists())
-			{
-				properties.load(rsrc.getInputStream());
-			}
+			properties.load(defaultSakaiPropertiesResource.getInputStream());
 		}
 		catch (Throwable t)
 		{
-			M_log.warn(t.getMessage(), t);
+			M_log.warn("Could not load default sakai.properties file", t);
 		}
-
-		// read all the files from the home path that are properties files
-		// TODO: not quite yet -ggolden
-		// readDirectoryPropertiesFiles(sakaiHomePath);
 
 		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
 		readPropertyFile(
@@ -206,5 +201,11 @@ public class BasicConfigurationLoader implements ConfigurationLoader {
 
 	public Properties getProperties() {
 		return properties;
+	}
+
+
+	public void setDefaultSakaiPropertiesResource(
+			Resource defaultSakaiPropertiesResource) {
+		this.defaultSakaiPropertiesResource = defaultSakaiPropertiesResource;
 	}
 }

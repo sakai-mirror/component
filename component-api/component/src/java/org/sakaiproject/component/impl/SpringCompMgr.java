@@ -92,6 +92,9 @@ public class SpringCompMgr implements ComponentManager
 	public void init()
 	{
 		if (m_ac != null) return;
+		
+		// Make sure a "sakai.home" system property is set.
+		ensureSakaiHome();
 
 		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
 
@@ -110,43 +113,6 @@ public class SpringCompMgr implements ComponentManager
 				}
 			});
 		}
-
-		// find a path to sakai files on the app server - if not set, set it
-		String sakaiHomePath = System.getProperty("sakai.home");
-		if (sakaiHomePath == null)
-		{
-			String catalina = getCatalina();
-			if (catalina != null)
-			{
-				sakaiHomePath = catalina + File.separatorChar + "sakai" + File.separatorChar;
-			}
-		}
-
-		// strange case...
-		if (sakaiHomePath == null)
-		{
-			sakaiHomePath = File.separatorChar + "usr" + File.separatorChar + "local" + File.separatorChar + "sakai"
-					+ File.separatorChar;
-		}
-		if (!sakaiHomePath.endsWith(File.separator)) sakaiHomePath = sakaiHomePath + File.separatorChar;
-
-		final File sakaiHomeDirectory = new File(sakaiHomePath);
-		if(!sakaiHomeDirectory.exists()) // no sakai.home directory exists, try to create one
-		{
-			if(sakaiHomeDirectory.mkdir())
-			{
-				M_log.debug("Created sakai.home directory at: "
-						+ sakaiHomePath);
-			}
-			else
-			{
-				M_log.warn("Could not create sakai.home directory at: "
-						+ sakaiHomePath);
-			}
-		}
-		
-		// make sure it's set properly
-		System.setProperty("sakai.home", sakaiHomePath);
 		
 		// Collect values from all the properties files.
 		configurationLoader = (ConfigurationLoader)m_ac.getBean("org.sakaiproject.component.api.ConfigurationLoader");
@@ -434,5 +400,45 @@ public class SpringCompMgr implements ComponentManager
 	public boolean hasBeenClosed()
 	{
 		return m_hasBeenClosed;
+	}
+	
+	private void ensureSakaiHome()
+	{
+		// find a path to sakai files on the app server - if not set, set it
+		String sakaiHomePath = System.getProperty("sakai.home");
+		if (sakaiHomePath == null)
+		{
+			String catalina = getCatalina();
+			if (catalina != null)
+			{
+				sakaiHomePath = catalina + File.separatorChar + "sakai" + File.separatorChar;
+			}
+		}
+
+		// strange case...
+		if (sakaiHomePath == null)
+		{
+			sakaiHomePath = File.separatorChar + "usr" + File.separatorChar + "local" + File.separatorChar + "sakai"
+					+ File.separatorChar;
+		}
+		if (!sakaiHomePath.endsWith(File.separator)) sakaiHomePath = sakaiHomePath + File.separatorChar;
+
+		final File sakaiHomeDirectory = new File(sakaiHomePath);
+		if(!sakaiHomeDirectory.exists()) // no sakai.home directory exists, try to create one
+		{
+			if(sakaiHomeDirectory.mkdir())
+			{
+				M_log.debug("Created sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+			else
+			{
+				M_log.warn("Could not create sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+		}
+		
+		// make sure it's set properly
+		System.setProperty("sakai.home", sakaiHomePath);
 	}
 }
