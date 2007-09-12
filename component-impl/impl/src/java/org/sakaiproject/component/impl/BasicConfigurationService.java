@@ -62,9 +62,6 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/** The map of values from the loaded properties - not synchronized at access. */
 	private Map m_properties = new HashMap();
 
-	/** Full path to registration files. */
-	private String m_registrationPath = null;
-
 	/** File name within sakai.home for the tool order file. */
 	private String toolOrderFile = null;
 	private Resource defaultToolOrderResource;
@@ -109,18 +106,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 *********************************************************************************************************************************************************************************************************************************************************/
 
 	/**
-	 * Configuration: set the file path for registration files.
-	 * 
-	 * @param string
-	 *        The file path for registration files.
-	 */
-	public void setRegistrationPath(String string)
-	{
-		m_registrationPath = string;
-	}
-
-	/**
-	 * Configuration: set the file name within sakai.home for tool order file.
+	 * Configuration: set the file name for tool order file.
 	 * 
 	 * @param string
 	 *        The file name for tool order file.
