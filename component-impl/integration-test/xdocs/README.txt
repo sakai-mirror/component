@@ -8,4 +8,4 @@ As a result, the test requires two steps:
 mvn  -Dmaven.test.skip=true clean install sakai:deploy
 
 # Then run the test.
-mvn clean install test
+mvn clean test

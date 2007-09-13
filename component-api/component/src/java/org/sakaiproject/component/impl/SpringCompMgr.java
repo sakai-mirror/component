@@ -33,7 +33,7 @@ import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ConfigurationLoader;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
-import org.sakaiproject.util.PropertyOverrideConfigurer;
+import org.sakaiproject.util.ReversiblePropertyOverrideConfigurer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -122,7 +122,8 @@ public class SpringCompMgr implements ComponentManager
 		// - these get injected into the beans
 		try
 		{
-			PropertyOverrideConfigurer pushProcessor = new PropertyOverrideConfigurer();
+			ReversiblePropertyOverrideConfigurer pushProcessor = new ReversiblePropertyOverrideConfigurer();
+			pushProcessor.setBeanNameSeparator("@");
 			pushProcessor.setProperties(m_config);
 			pushProcessor.setIgnoreInvalidKeys(true);
 			pushProcessor.postProcessBeanFactory(m_ac.getBeanFactory());
