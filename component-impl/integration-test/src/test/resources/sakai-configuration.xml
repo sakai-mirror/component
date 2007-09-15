@@ -3,6 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<import resource="classpath*:META-INF/spring/sakai-configuration.xml" />
+	<bean id="org.sakaiproject.component.test.String" class="java.lang.String">
+		<constructor-arg>
+			<value>local</value>
+		</constructor-arg>
+	</bean>
 
 </beans>

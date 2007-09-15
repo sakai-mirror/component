@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
@@ -36,7 +37,6 @@ import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,7 +60,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	private String serverIdInstance = null;
 
 	/** The map of values from the loaded properties - not synchronized at access. */
-	private Map m_properties = new HashMap();
+	private Properties properties;
 
 	/** File name within sakai.home for the tool order file. */
 	private String toolOrderFile = null;
@@ -98,8 +98,6 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 * @return the SessionManager collaborator.
 	 */
 	private SessionManager sessionManager;
-	
-	private BasicConfigurationLoader configurationLoader;
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Configuration
@@ -125,9 +123,11 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public void init()
 	{
-		// load the properties, from the configuration manager's set of properties that were used to configure the components
-		if (M_log.isDebugEnabled()) M_log.debug("About to load properties from " + configurationLoader);
-		m_properties.putAll(configurationLoader.getProperties());
+		// Start by setting any system properties that other components
+		// might depend on.
+		promotePropertiesToSystem(this.properties);
+		
+		
 
 		try
 		{
@@ -191,7 +191,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getServerId()
 	{
-		return (String) m_properties.get("serverId");
+		return (String) properties.get("serverId");
 	}
 
 	/**
@@ -219,7 +219,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		String rv = (String) threadLocalManager.get(CURRENT_SERVER_URL);
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("serverUrl");
+			rv = (String) properties.get("serverUrl");
 		}
 
 		return rv;
@@ -231,7 +231,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getServerName()
 	{
-		return (String) m_properties.get("serverName");
+		return (String) properties.get("serverName");
 	}
 
 	/**
@@ -239,7 +239,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getAccessUrl()
 	{
-		return getServerUrl() + (String) m_properties.get("accessPath");
+		return getServerUrl() + (String) properties.get("accessPath");
 	}
 
 	/**
@@ -247,7 +247,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getAccessPath()
 	{
-		return (String) m_properties.get("accessPath");
+		return (String) properties.get("accessPath");
 	}
 
 	/**
@@ -255,7 +255,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getHelpUrl(String helpContext)
 	{
-		String rv = getPortalUrl() + (String) m_properties.get("helpPath") + "/main";
+		String rv = getPortalUrl() + (String) properties.get("helpPath") + "/main";
 		if (helpContext != null)
 		{
 			rv += "?help=" + helpContext;
@@ -272,7 +272,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		String rv = (String) threadLocalManager.get(CURRENT_PORTAL_PATH);
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("portalPath");
+			rv = (String) properties.get("portalPath");
 		}
 
 		String portalUrl = getServerUrl() + rv;
@@ -285,7 +285,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getToolUrl()
 	{
-		return getServerUrl() + (String) m_properties.get("toolPath");
+		return getServerUrl() + (String) properties.get("toolPath");
 	}
 
 	/**
@@ -295,12 +295,12 @@ public class BasicConfigurationService implements ServerConfigurationService
 	{
 		// get the configured URL (the text "#UID#" will be repalced with the current logged in user id
 		// NOTE: this is relative to the server root
-		String rv = (String) m_properties.get("userHomeUrl");
+		String rv = (String) properties.get("userHomeUrl");
 
 		// form a site based portal id if not configured
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("portalPath") + "/site/~#UID#";
+			rv = (String) properties.get("portalPath") + "/site/~#UID#";
 		}
 
 		// check for a logged in user
@@ -324,7 +324,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getGatewaySiteId()
 	{
-		String rv = (String) m_properties.get("gatewaySiteId");
+		String rv = (String) properties.get("gatewaySiteId");
 
 		if (rv == null)
 		{
@@ -339,7 +339,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getLoggedOutUrl()
 	{
-		String rv = (String) m_properties.get("loggedOutUrl");
+		String rv = (String) properties.get("loggedOutUrl");
 		if (rv != null)
 		{
 			// if not a full URL, add the server to the front
@@ -379,7 +379,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public String getString(String name, String dflt)
 	{
-		String rv = StringUtil.trimToNull((String) m_properties.get(name));
+		String rv = StringUtil.trimToNull((String) properties.get(name));
 		if (rv == null) rv = dflt;
 
 		return rv;
@@ -661,19 +661,74 @@ public class BasicConfigurationService implements ServerConfigurationService
       return id;
 	}
 
-   public void setConfigurationLoader(BasicConfigurationLoader configurationLoader) {
-	   this.configurationLoader = configurationLoader;
-   }
 
-   public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
-	   this.threadLocalManager = threadLocalManager;
-   }
+	/**
+	 * If the properties has any of the values we need to set as sakai system properties, set them.
+	 * 
+	 * @param props
+	 *        The property override configurer with some override settings.
+	 */
+	private void promotePropertiesToSystem(Properties props)
+	{
+		String serverId = props.getProperty("serverId");
+		if (serverId != null)
+		{
+			System.setProperty("sakai.serverId", serverId);
+		}
 
-   public void setSessionManager(SessionManager sessionManager) {
-	   this.sessionManager = sessionManager;
-   }
+		// for the request filter
+		String uploadMax = props.getProperty("content.upload.max");
+		if (uploadMax != null)
+		{
+			System.setProperty("sakai.content.upload.max", uploadMax);
+		}
 
-   public void setDefaultToolOrderResource(Resource defaultToolOrderResource) {
-	   this.defaultToolOrderResource = defaultToolOrderResource;
-   }
+		// for the request filter
+		String uploadCeiling = props.getProperty("content.upload.ceiling");
+		if (uploadCeiling != null)
+		{
+			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
+		}
+
+		// for the request filter
+		String uploadDir = props.getProperty("content.upload.dir");
+		if (uploadDir != null)
+		{
+			System.setProperty("sakai.content.upload.dir", uploadDir);
+		}
+
+		if (props.getProperty("force.url.secure") != null)
+		{
+			try
+			{
+				// make sure it is an int
+				Integer.parseInt(props.getProperty("force.url.secure"));
+				System.setProperty("sakai.force.url.secure", props.getProperty("force.url.secure"));
+			}
+			catch (Throwable e)
+			{
+				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"), e);
+			}
+		}
+	}
+
+	public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
+		this.threadLocalManager = threadLocalManager;
+	}
+
+	public void setSessionManager(SessionManager sessionManager) {
+		this.sessionManager = sessionManager;
+	}
+
+	public void setDefaultToolOrderResource(Resource defaultToolOrderResource) {
+		this.defaultToolOrderResource = defaultToolOrderResource;
+	}
+
+	public Properties getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Properties properties) {
+		this.properties = properties;
+	}
 }

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="**/.DS_Store" kind="src" path="impl/src/java"/>
-	<classpathentry kind="src" path="impl/src/java"/>
 	<classpathentry kind="src" path="impl/src/resources"/>
 	<classpathentry kind="src" path="integration-test/src/test/java"/>
 	<classpathentry kind="src" path="integration-test/src/test/resources"/>

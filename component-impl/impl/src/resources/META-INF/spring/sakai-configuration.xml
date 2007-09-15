@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="DefaultSakaiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="properties">
+			<props>
+				<prop key="serverId">${org.sakaiproject.component.defaultServerId}</prop>
+			</props>
+		</property>
+		<!--
+			Due to Sakai's peculiar classloader situation, the only classpath resources
+			which can be injected into a component are ones in "shared/lib". Note,
+			however, that the component class code itself can find resources via
+			the usual "getClassloader().getResources()" calls.
+		-->
+		<property name="locations">
+			<list>
+				<value>classpath:/org/sakaiproject/config/sakai.properties</value>
+				<value>file:${sakai.home}placeholder.properties</value>
+				<value>file:${sakai.home}sakai.properties</value>
+				<value>file:${sakai.home}local.properties</value>
+				<value>file:${sakai.security}security.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="SakaiPropertyOverrideConfigurer" class="org.sakaiproject.util.ReversiblePropertyOverrideConfigurer">
+		<property name="beanNameSeparator" value="@"/>
+		<property name="ignoreInvalidKeys" value="true"/>
+		<property name="properties" ref="DefaultSakaiProperties"/>
+	</bean>
+
+	<bean id="SakaiPropertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+		<property name="properties" ref="DefaultSakaiProperties"/>
+		<property name="order" value="0"/>
+	</bean>
+
+	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
+			class="org.sakaiproject.component.impl.BasicConfigurationService"
+			init-method="init"
+			destroy-method="destroy">
+
+		<property name="threadLocalManager" ref="org.sakaiproject.thread_local.api.ThreadLocalManager" />
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+
+		<property name="toolOrderFile" value="${sakai.home}toolOrder.xml"/>
+		<property name="defaultToolOrderResource" value="classpath:/org/sakaiproject/config/toolOrder.xml"/>
+
+		<property name="properties" ref="DefaultSakaiProperties"/>
+	</bean>
+
+</beans>

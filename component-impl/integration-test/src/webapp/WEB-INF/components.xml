@@ -3,9 +3,26 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
+	<bean id="testPropertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<props>
+				<prop key="placeholderString1.key">default</prop>
+			</props>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+	</bean>
+
 	<bean id="org.sakaiproject.component.test.ITestComponent" class="org.sakaiproject.component.test.TestComponent"
 		init-method="init">
-		<property name="stringProperty1" value="default"/>
+		<property name="overrideString1" value="default"/>
+		<property name="placeholderString1" value="${placeholderString1.key}"/>
+		<property name="serverId" value="${serverId}"/>
+	</bean>
+	
+	<bean id="org.sakaiproject.component.test.String" class="java.lang.String">
+		<constructor-arg>
+			<value>default</value>
+		</constructor-arg>
 	</bean>
 
 </beans>

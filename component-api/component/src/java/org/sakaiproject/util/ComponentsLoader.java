@@ -25,7 +25,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
@@ -49,6 +51,9 @@ public class ComponentsLoader
 {
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
+	
+	private String configurationComponentPackageName;
+	private String sakaiHomeConfiguration;
 
 	public ComponentsLoader()
 	{
@@ -57,13 +62,10 @@ public class ComponentsLoader
 	/**
 	 * 
 	 */
-	public void load(ComponentManager mgr, String componentsRoot)
+	public void load(ConfigurableApplicationContext ac, String componentsRoot)
 	{
 		try
 		{
-			// get the ComponentManager's AC - assuming this is a SpringCompMgr. If not, this will throw.
-			ConfigurableApplicationContext ac = ((SpringCompMgr) mgr).getApplicationContext();
-
 			// get a list of the folders in the root
 			File root = new File(componentsRoot);
 
@@ -75,19 +77,21 @@ public class ComponentsLoader
 			}
 
 			// what component packages are there?
-			File[] packages = root.listFiles();
+			File[] packageArray = root.listFiles();
 
-			if (packages == null)
+			if (packageArray == null)
 			{
 				M_log.warn("load: empty directory: " + componentsRoot);
 				return;
 			}
+			
+			List<File> packages = new ArrayList<File>(Arrays.asList(packageArray));
 
 			// for testing, we might reverse load order
 			final int reverse = System.getProperty("sakai.components.reverse.load") != null ? -1 : 1;
 
 			// assure a consistent order - sort these files
-			Arrays.sort(packages, new Comparator()
+			Collections.sort(packages, new Comparator()
 			{
 				public int compare(Object o1, Object o2)
 				{
@@ -97,20 +101,38 @@ public class ComponentsLoader
 					return sort * reverse;
 				}
 			});
+			
+			// The Sakai configuration component definition should always be read last
+			// so that its setup can override that of other components.
+			if (configurationComponentPackageName != null)
+			{
+				File configurationComponentPackage = null;
+				for (int i = 0; i < packages.size(); i++)
+				{
+					if (packages.get(i).getName().equals(configurationComponentPackageName))
+					{
+						configurationComponentPackage = packages.remove(i);
+					}
+				}
+				if (configurationComponentPackage != null)
+				{
+					packages.add(configurationComponentPackage);
+				}
+			}
 
 			M_log.info("load: loading components from: " + componentsRoot);
 
 			// process the packages
-			for (int p = 0; p < packages.length; p++)
+			for (File packageDir : packages)
 			{
 				// if a valid components directory
-				if (validComponentsPackage(packages[p]))
+				if (validComponentsPackage(packageDir))
 				{
-					loadComponentPackage(packages[p], ac);
+					loadComponentPackage(packageDir, ac);
 				}
 				else
 				{
-					M_log.warn("load: skipping non-package entry: " + packages[p]);
+					M_log.warn("load: skipping non-package entry: " + packageDir);
 				}
 			}
 		}
@@ -153,7 +175,8 @@ public class ComponentsLoader
 			// classloader property is set.
 			reader.setBeanClassLoader(loader);
 			
-			Resource[] beanDefs = null;
+			List<Resource> beanDefList = new ArrayList<Resource>();
+			beanDefList.add(new FileSystemResource(xml.getCanonicalPath()));
 			
 			// Load the demo components, if necessary
 			File demoXml = new File(webinf, "components-demo.xml");
@@ -163,11 +186,7 @@ public class ComponentsLoader
 				if(demoXml.exists())
 				{
 					if(M_log.isInfoEnabled()) M_log.info("Loading demo components from " + dir);
-					beanDefs = new Resource[]
-					{
-							new FileSystemResource(xml.getCanonicalPath()),
-							new FileSystemResource(demoXml.getCanonicalPath())
-					};
+					beanDefList.add(new FileSystemResource(demoXml.getCanonicalPath()));
 				}
 			}
 			else
@@ -179,12 +198,17 @@ public class ComponentsLoader
 				}
 			}
 			
-			if(beanDefs == null)
+			if (dir.getName().equals(configurationComponentPackageName) && (sakaiHomeConfiguration != null))
 			{
-				beanDefs = new Resource[] {new FileSystemResource(xml.getCanonicalPath())};
+				File sakaiHomeConfigurationXml = new File(sakaiHomeConfiguration);
+				if (sakaiHomeConfigurationXml.exists())
+				{
+					if(M_log.isInfoEnabled()) M_log.info("Loading local configuration from " + sakaiHomeConfigurationXml);
+					beanDefList.add(new FileSystemResource(sakaiHomeConfigurationXml.getCanonicalPath()));
+				}
 			}
-			
-			reader.loadBeanDefinitions(beanDefs);
+						
+			reader.loadBeanDefinitions(beanDefList.toArray(new Resource[0]));
 		}
 		catch (Throwable t)
 		{
@@ -286,5 +310,14 @@ public class ComponentsLoader
 		URLClassLoader loader = new URLClassLoader(urlArray, getClass().getClassLoader());
 
 		return loader;
+	}
+
+	public void setConfigurationComponentPackageName(
+			String configurationComponentPackageName) {
+		this.configurationComponentPackageName = configurationComponentPackageName;
+	}
+
+	public void setSakaiHomeConfiguration(String sakaiHomeConfiguration) {
+		this.sakaiHomeConfiguration = sakaiHomeConfiguration;
 	}
 }

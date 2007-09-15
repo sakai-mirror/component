@@ -22,6 +22,8 @@
 package org.sakaiproject.component.impl;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -30,12 +32,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
-import org.sakaiproject.component.api.ConfigurationLoader;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
-import org.sakaiproject.util.ReversiblePropertyOverrideConfigurer;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
@@ -54,6 +53,15 @@ public class SpringCompMgr implements ComponentManager
 
 	/** System property to control if we close on jvm shutdown (if set) or on the loss of our last child (if not set). */
 	protected final static String CLOSE_ON_SHUTDOWN = "sakai.component.closeonshutdown";
+	
+	/** The Sakai configuration component package, which must be the last defined. */
+	protected final static String CONFIGURATION_COMPONENT_PACKAGE = "sakai-component-pack";
+	
+	/** The Sakai configuration components, which must be the first loaded. */
+	protected final static String[] CONFIGURATION_COMPONENTS = {
+		"org.sakaiproject.component.api.ServerConfigurationService",
+		"org.sakaiproject.log.api.LogConfigurationManager"
+	};
 
 	/** The Spring Application Context. */
 	protected ConfigurableApplicationContext m_ac = null;
@@ -69,8 +77,6 @@ public class SpringCompMgr implements ComponentManager
 
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
-	
-	private ConfigurationLoader configurationLoader;
 
 	/**
 	 * Initialize.
@@ -95,8 +101,13 @@ public class SpringCompMgr implements ComponentManager
 		
 		// Make sure a "sakai.home" system property is set.
 		ensureSakaiHome();
+		checkSecurityPath();
+		ensureServerId();
 
-		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
+		// TODO Set this sort of thing via a configuration file.
+		NoisierDefaultListableBeanFactory beanFactory = new NoisierDefaultListableBeanFactory();
+		beanFactory.setInitialComponentNames(CONFIGURATION_COMPONENTS);
+		m_ac = new GenericApplicationContext(beanFactory);
 
 		// load component packages
 		loadComponents();
@@ -114,48 +125,6 @@ public class SpringCompMgr implements ComponentManager
 			});
 		}
 		
-		// Collect values from all the properties files.
-		configurationLoader = (ConfigurationLoader)m_ac.getBean("org.sakaiproject.component.api.ConfigurationLoader");
-		m_config = configurationLoader.getProperties();
-
-		// post process the definitions from components with overrides from these properties
-		// - these get injected into the beans
-		try
-		{
-			ReversiblePropertyOverrideConfigurer pushProcessor = new ReversiblePropertyOverrideConfigurer();
-			pushProcessor.setBeanNameSeparator("@");
-			pushProcessor.setProperties(m_config);
-			pushProcessor.setIgnoreInvalidKeys(true);
-			pushProcessor.postProcessBeanFactory(m_ac.getBeanFactory());
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder
-		// values
-		try
-		{
-			PropertyPlaceholderConfigurer pullProcessor = new PropertyPlaceholderConfigurer();
-			pullProcessor.setProperties(m_config);
-			pullProcessor.postProcessBeanFactory(m_ac.getBeanFactory());
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// get our special log handler started before the rest
-		try
-		{
-			m_ac.getBean("org.sakaiproject.log.api.LogConfigurationManager");
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
 		try
 		{
 			// get the singletons loaded
@@ -166,7 +135,6 @@ public class SpringCompMgr implements ComponentManager
 			M_log.warn(t.getMessage(), t);
 		}
 	}
-
 	/**
 	 * Access the ApplicationContext
 	 * 
@@ -314,6 +282,8 @@ public class SpringCompMgr implements ComponentManager
 	protected void loadComponents()
 	{
 		ComponentsLoader loader = new ComponentsLoader();
+		loader.setConfigurationComponentPackageName(CONFIGURATION_COMPONENT_PACKAGE);
+		loader.setSakaiHomeConfiguration(System.getProperty("sakai.home") + "sakai-configuration.xml");
 
 		// locate the components root
 		// if we have our system property set, use it
@@ -338,7 +308,7 @@ public class SpringCompMgr implements ComponentManager
 		System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
 
 		// load components
-		loader.load(this, componentsRoot);
+		loader.load(m_ac, componentsRoot);
 	}
 
 	/**
@@ -441,5 +411,31 @@ public class SpringCompMgr implements ComponentManager
 		
 		// make sure it's set properly
 		System.setProperty("sakai.home", sakaiHomePath);
+	}
+	
+	private void checkSecurityPath()
+	{
+		// check for the security home
+		String securityPath = System.getProperty("sakai.security");
+		if (securityPath != null)
+		{
+			// make sure it's properly slashed
+			if (!securityPath.endsWith(File.separator)) securityPath = securityPath + File.separatorChar;
+			System.setProperty("sakai.security", securityPath);
+		}
+	}
+	
+	private void ensureServerId()
+	{
+		try
+		{
+			String id = InetAddress.getLocalHost().getHostName();
+			System.setProperty("org.sakaiproject.component.defaultServerId", id);
+		}
+		catch (UnknownHostException e)
+		{ // empty catch block
+			M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
+			System.setProperty("org.sakaiproject.component.defaultServerId", "");
+		}
 	}
 }

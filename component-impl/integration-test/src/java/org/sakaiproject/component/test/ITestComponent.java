@@ -22,9 +22,24 @@
 
 package org.sakaiproject.component.test;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  *
  */
 public interface ITestComponent {
-	String getStringProperty1();
+	String getOverrideString1();
+
+	String getPlaceholderString1();
+
+	String[] getStringArrayPlaceholder1();
+
+	List<String> getListOverride1();
+
+	Map<String, String> getMapOverride1();
+
+	ITestProvider getTestProvider();
+	
+	String getServerId();
 }

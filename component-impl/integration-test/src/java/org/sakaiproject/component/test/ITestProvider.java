@@ -20,13 +20,11 @@
 *
 **********************************************************************************/
 
-package org.sakaiproject.component.api;
-
-import java.util.Properties;
+package org.sakaiproject.component.test;
 
 /**
  *
  */
-public interface ConfigurationLoader {
-	Properties getProperties();
+public interface ITestProvider {
+	String getProviderName();
 }

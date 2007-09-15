@@ -72,7 +72,11 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		Assert.assertTrue(serverConfigurationService.getString("loadedTomcatSakaiProperties").equals("true"));
 		Assert.assertTrue(serverConfigurationService.getString("gatewaySiteId").equals("!gateway"));
 		ITestComponent testComponent = (ITestComponent)getService(ITestComponent.class.getName());
-		Assert.assertTrue(testComponent.getStringProperty1().equals("nondefault"));
+		Assert.assertTrue(testComponent.getOverrideString1().equals("nondefault"));
+		Assert.assertTrue(testComponent.getPlaceholderString1().equals("nondefault"));
+		log.warn("serverId=" + testComponent.getServerId());
+		String testBean = (String)getService("org.sakaiproject.component.test.String");
+		Assert.assertTrue(testBean.equals("local"));
 	}
 	
 	public static void initializeSakaiHome() {
@@ -80,7 +84,7 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		if (log.isDebugEnabled()) log.debug("propertiesUrl=" + propertiesUrl);
 		if (propertiesUrl != null) {
 			String propertiesFileName = propertiesUrl.getFile();
-			String sakaiHomeDir = propertiesFileName.substring(0, propertiesFileName.lastIndexOf("sakai.properties"));
+			String sakaiHomeDir = propertiesFileName.substring(0, propertiesFileName.lastIndexOf("sakai.properties") - 1);
 			System.setProperty("test.sakai.home", sakaiHomeDir);
 		}
 	}
