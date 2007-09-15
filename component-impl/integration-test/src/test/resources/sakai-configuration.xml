@@ -8,5 +8,7 @@
 			<value>local</value>
 		</constructor-arg>
 	</bean>
+	
+	<alias name="org.sakaiproject.component.test.TestProvider2" alias="org.sakaiproject.component.test.ITestProvider"/>
 
 </beans>

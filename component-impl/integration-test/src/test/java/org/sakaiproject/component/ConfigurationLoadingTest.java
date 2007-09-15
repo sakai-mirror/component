@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.component.test.ITestComponent;
+import org.sakaiproject.component.test.ITestProvider;
 import org.sakaiproject.test.SakaiTestBase;
 
 /**
@@ -77,6 +78,8 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		log.warn("serverId=" + testComponent.getServerId());
 		String testBean = (String)getService("org.sakaiproject.component.test.String");
 		Assert.assertTrue(testBean.equals("local"));
+		ITestProvider testProvider = (ITestProvider)getService(ITestProvider.class.getName());
+		Assert.assertTrue(testProvider.getProviderName().equals("provider2"));
 	}
 	
 	public static void initializeSakaiHome() {

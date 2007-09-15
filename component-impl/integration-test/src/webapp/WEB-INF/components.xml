@@ -24,5 +24,9 @@
 			<value>default</value>
 		</constructor-arg>
 	</bean>
+	
+	<bean id="org.sakaiproject.component.test.ITestProvider" class="org.sakaiproject.component.test.TestProvider1"/>
+	
+	<bean id="org.sakaiproject.component.test.TestProvider2" class="org.sakaiproject.component.test.TestProvider2"/>
 
 </beans>
