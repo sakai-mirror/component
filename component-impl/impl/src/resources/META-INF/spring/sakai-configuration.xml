@@ -37,7 +37,7 @@
 	<bean id="SakaiPropertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 		<property name="properties" ref="DefaultSakaiProperties"/>
-		<property name="order" value="0"/>
+		<property name="order" value="1"/>
 	</bean>
 
 	<bean id="org.sakaiproject.component.api.ServerConfigurationService"

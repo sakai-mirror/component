@@ -80,6 +80,12 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		Assert.assertTrue(testBean.equals("local"));
 		ITestProvider testProvider = (ITestProvider)getService(ITestProvider.class.getName());
 		Assert.assertTrue(testProvider.getProviderName().equals("provider2"));
+		
+		Assert.assertTrue(testComponent.getListOverride1().size() == 3);
+		Assert.assertTrue(testComponent.getListOverride1().get(0).equals("nondefault1"));
+		Assert.assertTrue(testComponent.getMapOverride1().size() == 3);
+		Assert.assertTrue(testComponent.getMapOverride1().get("key1").equals("nondefault1"));
+
 	}
 	
 	public static void initializeSakaiHome() {
