@@ -25,6 +25,7 @@
 			</list>
 		</property>
 		<property name="mapOverride1" ref="defaultMap"/>
+		<property name="stringArrayPlaceholder1" value="default1, default2"/>
 	</bean>
 	
 	<util:map id="defaultMap">

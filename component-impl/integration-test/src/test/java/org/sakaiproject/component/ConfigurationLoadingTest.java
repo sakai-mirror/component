@@ -85,7 +85,11 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		Assert.assertTrue(testComponent.getListOverride1().get(0).equals("nondefault1"));
 		Assert.assertTrue(testComponent.getMapOverride1().size() == 3);
 		Assert.assertTrue(testComponent.getMapOverride1().get("key1").equals("nondefault1"));
-
+		
+		// Test for use of a local properties file other than sakai.properties.
+		String[] stringArrayPlaceholder1 = testComponent.getStringArrayPlaceholder1();
+		Assert.assertTrue(stringArrayPlaceholder1.length == 4);
+		Assert.assertTrue(stringArrayPlaceholder1[0].equals("peculiar1"));
 	}
 	
 	public static void initializeSakaiHome() {
@@ -95,6 +99,6 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 			String propertiesFileName = propertiesUrl.getFile();
 			String sakaiHomeDir = propertiesFileName.substring(0, propertiesFileName.lastIndexOf("sakai.properties") - 1);
 			System.setProperty("test.sakai.home", sakaiHomeDir);
-		}
+		}		
 	}
 }

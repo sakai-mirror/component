@@ -4,7 +4,7 @@
     xmlns:util="http://www.springframework.org/schema/util"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<bean id="org.sakaiproject.component.SakaiProperties" class="org.sakaiproject.util.SakaiProperties">
+	<bean id="org.sakaiproject.component.DefaultSakaiProperties" abstract="true" class="org.sakaiproject.util.SakaiProperties">
 		<property name="properties">
 			<props>
 				<prop key="serverId">${org.sakaiproject.component.defaultServerId}</prop>
@@ -19,10 +19,6 @@
 		<property name="locations">
 			<list>
 				<value>classpath:/org/sakaiproject/config/sakai.properties</value>
-				<value>file:${sakai.home}placeholder.properties</value>
-				<value>file:${sakai.home}sakai.properties</value>
-				<value>file:${sakai.home}local.properties</value>
-				<value>file:${sakai.security}security.properties</value>
 			</list>
 		</property>
 
@@ -32,6 +28,17 @@
 			file.
 		 -->
 		<property name="order" value="1"/>
+	</bean>
+
+	<bean id="org.sakaiproject.component.SakaiProperties" parent="org.sakaiproject.component.DefaultSakaiProperties">
+		<property name="locations">
+			<list merge="true">
+				<value>file:${sakai.home}placeholder.properties</value>
+				<value>file:${sakai.home}sakai.properties</value>
+				<value>file:${sakai.home}local.properties</value>
+				<value>file:${sakai.security}security.properties</value>
+			</list>
+		</property>
 	</bean>
 
 	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
