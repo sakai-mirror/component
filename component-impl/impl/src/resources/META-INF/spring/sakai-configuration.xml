@@ -4,8 +4,7 @@
     xmlns:util="http://www.springframework.org/schema/util"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<bean id="DefaultSakaiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-		<property name="ignoreResourceNotFound" value="true"/>
+	<bean id="org.sakaiproject.component.SakaiProperties" class="org.sakaiproject.util.SakaiProperties">
 		<property name="properties">
 			<props>
 				<prop key="serverId">${org.sakaiproject.component.defaultServerId}</prop>
@@ -26,17 +25,12 @@
 				<value>file:${sakai.security}security.properties</value>
 			</list>
 		</property>
-	</bean>
 
-	<bean id="SakaiPropertyOverrideConfigurer" class="org.sakaiproject.util.ReversiblePropertyOverrideConfigurer">
-		<property name="beanNameSeparator" value="@"/>
-		<property name="ignoreInvalidKeys" value="true"/>
-		<property name="properties" ref="DefaultSakaiProperties"/>
-	</bean>
-
-	<bean id="SakaiPropertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="ignoreUnresolvablePlaceholders" value="true"/>
-		<property name="properties" ref="DefaultSakaiProperties"/>
+		<!--
+			The standard properties list should override any component-set properties, but can
+			themselves be overridden by SakaiProperties loaded by a local "sakai-configuration.xml"
+			file.
+		 -->
 		<property name="order" value="1"/>
 	</bean>
 
@@ -51,7 +45,7 @@
 		<property name="toolOrderFile" value="${sakai.home}toolOrder.xml"/>
 		<property name="defaultToolOrderResource" value="classpath:/org/sakaiproject/config/toolOrder.xml"/>
 
-		<property name="properties" ref="DefaultSakaiProperties"/>
+		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
 	</bean>
 
 </beans>

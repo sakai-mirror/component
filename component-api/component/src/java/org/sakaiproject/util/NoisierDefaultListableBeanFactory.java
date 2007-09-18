@@ -95,4 +95,11 @@ public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactor
 	public void setInitialComponentNames(String[] initialComponentNames) {
 		this.initialComponentNames = initialComponentNames;
 	}
+
+	public void destroySingletons() {
+		if (logger.isInfoEnabled()) {
+			logger.info("destroySingletons", new Exception());
+		}
+		super.destroySingletons();
+	}
 }

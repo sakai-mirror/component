@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.util.SakaiProperties;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
 import org.springframework.core.io.Resource;
@@ -98,6 +99,8 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 * @return the SessionManager collaborator.
 	 */
 	private SessionManager sessionManager;
+	
+	private SakaiProperties sakaiProperties;
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Configuration
@@ -125,9 +128,8 @@ public class BasicConfigurationService implements ServerConfigurationService
 	{
 		// Start by setting any system properties that other components
 		// might depend on.
+		this.properties = sakaiProperties.getProperties();
 		promotePropertiesToSystem(this.properties);
-		
-		
 
 		try
 		{
@@ -728,7 +730,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		return properties;
 	}
 
-	public void setProperties(Properties properties) {
-		this.properties = properties;
+	public void setSakaiProperties(SakaiProperties sakaiProperties) {
+		this.sakaiProperties = sakaiProperties;
 	}
 }

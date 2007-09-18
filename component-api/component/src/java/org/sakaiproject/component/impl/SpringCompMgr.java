@@ -32,9 +32,11 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
+import org.sakaiproject.util.BeanFactoryPostProcessorCreator;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
@@ -127,6 +129,17 @@ public class SpringCompMgr implements ComponentManager
 		
 		try
 		{
+			// Create any "special" post processors, such as those handling "sakai.properties".
+			String[] postProcessorCreatorNames = beanFactory.getBeanNamesForType(BeanFactoryPostProcessorCreator.class);
+			for (int i = 0; i < postProcessorCreatorNames.length; i++)
+			{
+				BeanFactoryPostProcessorCreator postProcessorCreator = (BeanFactoryPostProcessorCreator)beanFactory.getBean(postProcessorCreatorNames[i]);
+				for (BeanFactoryPostProcessor beanFactoryPostProcessor : postProcessorCreator.getBeanFactoryPostProcessors())
+				{
+					m_ac.addBeanFactoryPostProcessor(beanFactoryPostProcessor);
+				}
+			}
+			
 			// get the singletons loaded
 			m_ac.refresh();
 		}
