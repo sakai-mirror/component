@@ -23,13 +23,17 @@
 		</property>
 
 		<!--
-			The standard properties list should override any component-set properties, but can
-			themselves be overridden by SakaiProperties loaded by a local "sakai-configuration.xml"
-			file.
+			The standard singleton SakaiProperties should override any component-set properties, but can
+			themselves be overridden or preceded by another instance of the class.
 		 -->
 		<property name="order" value="1"/>
 	</bean>
 
+	<!--
+		The "${sakai.home}/sakai-configuration.xml" file can override this bean to change which properties
+		files are read, or to plug a DB-backed or JMX-backed properties factory bean into the "properties"
+		slot.
+	-->
 	<bean id="org.sakaiproject.component.SakaiProperties" parent="org.sakaiproject.component.DefaultSakaiProperties">
 		<property name="locations">
 			<list merge="true">

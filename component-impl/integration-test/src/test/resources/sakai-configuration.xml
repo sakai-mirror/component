@@ -9,6 +9,10 @@
 			<list merge="true">
 				<value>file:${sakai.home}sakai.properties</value>
 				<value>file:${sakai.home}some-peculiar.properties</value>
+				<!--  Wildcards work as well.... -->
+<!--
+				<value>file:${sakai.home}*.properties</value>
+-->
 			</list>
 		</property>
 	</bean>
