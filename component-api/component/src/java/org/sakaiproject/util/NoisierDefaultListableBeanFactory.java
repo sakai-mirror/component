@@ -37,20 +37,12 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * and a stack trace of the exception.
  */
 public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory {
-	private String[] initialComponentNames;
 	
 	public void preInstantiateSingletons() throws BeansException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Pre-instantiating singletons in factory [" + this + "]");
 		}
-		
-		if (initialComponentNames != null) {
-			for (int i = 0; i < initialComponentNames.length; i++)
-			{
-				getBean(initialComponentNames[i]);
-			}
-		}
-		
+			
 		// The superclass's variable by this name is declared private.
 		String[] beanDefinitionNames = getBeanDefinitionNames();
 		String beanName = null;	// Remember in case of an exception
@@ -86,14 +78,6 @@ public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactor
 			}
 			throw ex;
 		}
-	}
-
-	/**
-	 * @param initialComponentNames initial configuration beans to load, behaving
-	 * as universal "dependsOn" targets
-	 */
-	public void setInitialComponentNames(String[] initialComponentNames) {
-		this.initialComponentNames = initialComponentNames;
 	}
 
 	public void destroySingletons() {

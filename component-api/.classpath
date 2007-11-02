@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry excluding="**/.DS_Store" kind="src" path="component/src/java"/>
 	<classpathentry excluding="**/.DS_Store" kind="src" path="api/src/java"/>
+	<classpathentry including="**/*.properties|**/*.xml" kind="src" path="component/src/config"/>
 	<classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
 	<classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.0.6/spring-2.0.6.jar" sourcepath="/SPRING_SRC"/>

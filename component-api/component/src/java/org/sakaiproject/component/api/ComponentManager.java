@@ -103,6 +103,7 @@ public interface ComponentManager
 
 	/**
 	 * Wait right here till the component manager is fully configured.
+	 * @deprecated
 	 */
 	void waitTillConfigured();
 	

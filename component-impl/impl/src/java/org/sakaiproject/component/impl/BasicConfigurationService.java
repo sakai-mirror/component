@@ -129,7 +129,6 @@ public class BasicConfigurationService implements ServerConfigurationService
 		// Start by setting any system properties that other components
 		// might depend on.
 		this.properties = sakaiProperties.getProperties();
-		promotePropertiesToSystem(this.properties);
 
 		try
 		{
@@ -663,56 +662,6 @@ public class BasicConfigurationService implements ServerConfigurationService
       return id;
 	}
 
-
-	/**
-	 * If the properties has any of the values we need to set as sakai system properties, set them.
-	 * 
-	 * @param props
-	 *        The property override configurer with some override settings.
-	 */
-	private void promotePropertiesToSystem(Properties props)
-	{
-		String serverId = props.getProperty("serverId");
-		if (serverId != null)
-		{
-			System.setProperty("sakai.serverId", serverId);
-		}
-
-		// for the request filter
-		String uploadMax = props.getProperty("content.upload.max");
-		if (uploadMax != null)
-		{
-			System.setProperty("sakai.content.upload.max", uploadMax);
-		}
-
-		// for the request filter
-		String uploadCeiling = props.getProperty("content.upload.ceiling");
-		if (uploadCeiling != null)
-		{
-			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
-		}
-
-		// for the request filter
-		String uploadDir = props.getProperty("content.upload.dir");
-		if (uploadDir != null)
-		{
-			System.setProperty("sakai.content.upload.dir", uploadDir);
-		}
-
-		if (props.getProperty("force.url.secure") != null)
-		{
-			try
-			{
-				// make sure it is an int
-				Integer.parseInt(props.getProperty("force.url.secure"));
-				System.setProperty("sakai.force.url.secure", props.getProperty("force.url.secure"));
-			}
-			catch (Throwable e)
-			{
-				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"), e);
-			}
-		}
-	}
 
 	public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
 		this.threadLocalManager = threadLocalManager;

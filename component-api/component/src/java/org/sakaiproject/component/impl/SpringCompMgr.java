@@ -24,8 +24,10 @@ package org.sakaiproject.component.impl;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -35,10 +37,13 @@ import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.util.BeanFactoryPostProcessorCreator;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
+import org.sakaiproject.util.SakaiApplicationContext;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 /**
  * <p>
@@ -61,12 +66,15 @@ public class SpringCompMgr implements ComponentManager
 	
 	/** The Sakai configuration components, which must be the first loaded. */
 	protected final static String[] CONFIGURATION_COMPONENTS = {
-		"org.sakaiproject.component.api.ServerConfigurationService",
+		"org.sakaiproject.component.SakaiPropertyPromoter",
 		"org.sakaiproject.log.api.LogConfigurationManager"
 	};
+	
+	protected final static String DEFAULT_CONFIGURATION_FILE = "classpath:/org/sakaiproject/config/sakai-configuration.xml";
+	protected final static String CONFIGURATION_FILE_NAME = "sakai-configuration.xml";
 
 	/** The Spring Application Context. */
-	protected ConfigurableApplicationContext m_ac = null;
+	protected SakaiApplicationContext m_ac = null;
 
 	/** The already created components given to manage (their interface names). */
 	protected Set m_loadedComponents = new HashSet();
@@ -106,10 +114,17 @@ public class SpringCompMgr implements ComponentManager
 		checkSecurityPath();
 		ensureServerId();
 
-		// TODO Set this sort of thing via a configuration file.
-		NoisierDefaultListableBeanFactory beanFactory = new NoisierDefaultListableBeanFactory();
-		beanFactory.setInitialComponentNames(CONFIGURATION_COMPONENTS);
-		m_ac = new GenericApplicationContext(beanFactory);
+		m_ac = new SakaiApplicationContext();
+		m_ac.setInitialSingletonNames(CONFIGURATION_COMPONENTS);
+		
+		List<String> configLocationList = new ArrayList<String>();
+		configLocationList.add(DEFAULT_CONFIGURATION_FILE);
+		String localConfigLocation = System.getProperty("sakai.home") + CONFIGURATION_FILE_NAME;
+		File configFile = new File(localConfigLocation);
+		if (configFile.exists()) {
+			configLocationList.add("file:" + localConfigLocation);
+		}
+		m_ac.setConfigLocations(configLocationList.toArray(new String[0]));
 
 		// load component packages
 		loadComponents();
@@ -129,17 +144,6 @@ public class SpringCompMgr implements ComponentManager
 		
 		try
 		{
-			// Create any "special" post processors, such as those handling "sakai.properties".
-			String[] postProcessorCreatorNames = beanFactory.getBeanNamesForType(BeanFactoryPostProcessorCreator.class);
-			for (int i = 0; i < postProcessorCreatorNames.length; i++)
-			{
-				BeanFactoryPostProcessorCreator postProcessorCreator = (BeanFactoryPostProcessorCreator)beanFactory.getBean(postProcessorCreatorNames[i]);
-				for (BeanFactoryPostProcessor beanFactoryPostProcessor : postProcessorCreator.getBeanFactoryPostProcessors())
-				{
-					m_ac.addBeanFactoryPostProcessor(beanFactoryPostProcessor);
-				}
-			}
-			
 			// get the singletons loaded
 			m_ac.refresh();
 		}
@@ -295,8 +299,6 @@ public class SpringCompMgr implements ComponentManager
 	protected void loadComponents()
 	{
 		ComponentsLoader loader = new ComponentsLoader();
-		loader.setConfigurationComponentPackageName(CONFIGURATION_COMPONENT_PACKAGE);
-		loader.setSakaiHomeConfiguration(System.getProperty("sakai.home") + "sakai-configuration.xml");
 
 		// locate the components root
 		// if we have our system property set, use it

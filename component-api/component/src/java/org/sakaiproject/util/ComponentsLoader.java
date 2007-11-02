@@ -52,9 +52,6 @@ public class ComponentsLoader
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
 	
-	private String configurationComponentPackageName;
-	private String sakaiHomeConfiguration;
-
 	public ComponentsLoader()
 	{
 	}
@@ -102,24 +99,6 @@ public class ComponentsLoader
 				}
 			});
 			
-			// The Sakai configuration component definition should always be read last
-			// so that its setup can override that of other components.
-			if (configurationComponentPackageName != null)
-			{
-				File configurationComponentPackage = null;
-				for (int i = 0; i < packages.size(); i++)
-				{
-					if (packages.get(i).getName().equals(configurationComponentPackageName))
-					{
-						configurationComponentPackage = packages.remove(i);
-					}
-				}
-				if (configurationComponentPackage != null)
-				{
-					packages.add(configurationComponentPackage);
-				}
-			}
-
 			M_log.info("load: loading components from: " + componentsRoot);
 
 			// process the packages
@@ -195,16 +174,6 @@ public class ComponentsLoader
 				{
 					// Only log that we're skipping the demo components if they exist
 					if(M_log.isInfoEnabled()) M_log.info("Skipping demo components from " + dir);
-				}
-			}
-			
-			if (dir.getName().equals(configurationComponentPackageName) && (sakaiHomeConfiguration != null))
-			{
-				File sakaiHomeConfigurationXml = new File(sakaiHomeConfiguration);
-				if (sakaiHomeConfigurationXml.exists())
-				{
-					if(M_log.isInfoEnabled()) M_log.info("Loading local configuration from " + sakaiHomeConfigurationXml);
-					beanDefList.add(new FileSystemResource(sakaiHomeConfigurationXml.getCanonicalPath()));
 				}
 			}
 						
@@ -310,14 +279,5 @@ public class ComponentsLoader
 		URLClassLoader loader = new URLClassLoader(urlArray, getClass().getClassLoader());
 
 		return loader;
-	}
-
-	public void setConfigurationComponentPackageName(
-			String configurationComponentPackageName) {
-		this.configurationComponentPackageName = configurationComponentPackageName;
-	}
-
-	public void setSakaiHomeConfiguration(String sakaiHomeConfiguration) {
-		this.sakaiHomeConfiguration = sakaiHomeConfiguration;
 	}
 }
