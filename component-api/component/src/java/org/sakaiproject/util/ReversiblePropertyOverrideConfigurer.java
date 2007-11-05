@@ -27,7 +27,9 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyOverrideConfigurer;
 
 /**
- *
+ * This is just a version of Spring's PropertyOverrideConfigurer that lets the
+ * bean name be specified Sakai-style before the property name instead of after.
+ * (For example "myBean@the.property" instead of "the.property@myBean".)
  */
 public class ReversiblePropertyOverrideConfigurer extends PropertyOverrideConfigurer {
 	private boolean beanNameAtEnd = true;

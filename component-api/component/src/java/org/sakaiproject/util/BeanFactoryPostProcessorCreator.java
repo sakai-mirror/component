@@ -27,11 +27,10 @@ import java.util.Collection;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 
 /**
- *
+ * Allows for programmatic creation of BeanFactoryPostProcessor objects.
  */
 public interface BeanFactoryPostProcessorCreator {
 	/**
-	 * 
 	 * @return new BeanFactoryPostProcessor beans
 	 */
 	Collection<BeanFactoryPostProcessor> getBeanFactoryPostProcessors();

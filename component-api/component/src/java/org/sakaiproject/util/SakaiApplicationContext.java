@@ -33,6 +33,12 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.support.GenericApplicationContext;
 
+/**
+ * Hook some Sakai-specific operations into the normal ApplicationContext
+ * refresh cycle: read component manager configuration files, give creators of
+ * PostProcessor objects (e.g., SakaiProperties) a chance to do their work,
+ * and load a few central components before the rest.
+ */
 public class SakaiApplicationContext extends GenericApplicationContext {
 	private String[] initialSingletonNames;
 	private String[] configLocations;

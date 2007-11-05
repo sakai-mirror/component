@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- *
+ * Some Sakai properties have traditionally also been exposed as Java system properties.
+ * This is a simple utility class to handle that chore.
  */
 public class SakaiPropertyPromoter {
 	private SakaiProperties sakaiProperties;

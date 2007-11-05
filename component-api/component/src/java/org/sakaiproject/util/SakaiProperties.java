@@ -36,42 +36,13 @@ import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.core.io.Resource;
 
 /**
- *
- 	<bean id="DefaultSakaiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-		<property name="ignoreResourceNotFound" value="true"/>
-		<property name="properties">
-			<props>
-				<prop key="serverId">${org.sakaiproject.component.defaultServerId}</prop>
-			</props>
-		</property>
-		<!--
-			Due to Sakai's peculiar classloader situation, the only classpath resources
-			which can be injected into a component are ones in "shared/lib". Note,
-			however, that the component class code itself can find resources via
-			the usual "getClassloader().getResources()" calls.
-		-->
-		<property name="locations">
-			<list>
-				<value>classpath:/org/sakaiproject/config/sakai.properties</value>
-				<value>file:${sakai.home}placeholder.properties</value>
-				<value>file:${sakai.home}sakai.properties</value>
-				<value>file:${sakai.home}local.properties</value>
-				<value>file:${sakai.security}security.properties</value>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="SakaiPropertyOverrideConfigurer" class="org.sakaiproject.util.ReversiblePropertyOverrideConfigurer">
-		<property name="beanNameSeparator" value="@"/>
-		<property name="ignoreInvalidKeys" value="true"/>
-		<property name="properties" ref="DefaultSakaiProperties"/>
-	</bean>
-
-	<bean id="SakaiPropertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="ignoreUnresolvablePlaceholders" value="true"/>
-		<property name="properties" ref="DefaultSakaiProperties"/>
-		<property name="order" value="1"/>
-	</bean>
+ * A configurer for "sakai.properties" files. These differ from the usual Spring default properties
+ * files by mixing together lines which define property-value pairs and lines which define
+ * bean property overrides. The two can be distinguished because Sakai conventionally uses
+ * the bean name separator "@" instead of the default "."
+ * 
+ * This class creates separate PropertyPlaceholderConfigurer and PropertyOverrideConfigurer
+ * objects to handle bean configuration, and loads them with the input properties.
  */
 public class SakaiProperties implements BeanFactoryPostProcessorCreator, InitializingBean {
 	private static Log log = LogFactory.getLog(SakaiProperties.class);
