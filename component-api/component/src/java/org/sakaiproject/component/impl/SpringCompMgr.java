@@ -112,7 +112,6 @@ public class SpringCompMgr implements ComponentManager
 		// Make sure a "sakai.home" system property is set.
 		ensureSakaiHome();
 		checkSecurityPath();
-		ensureServerId();
 
 		m_ac = new SakaiApplicationContext();
 		m_ac.setInitialSingletonNames(CONFIGURATION_COMPONENTS);
@@ -437,20 +436,6 @@ public class SpringCompMgr implements ComponentManager
 			// make sure it's properly slashed
 			if (!securityPath.endsWith(File.separator)) securityPath = securityPath + File.separatorChar;
 			System.setProperty("sakai.security", securityPath);
-		}
-	}
-	
-	private void ensureServerId()
-	{
-		try
-		{
-			String id = InetAddress.getLocalHost().getHostName();
-			System.setProperty("org.sakaiproject.component.defaultServerId", id);
-		}
-		catch (UnknownHostException e)
-		{ // empty catch block
-			M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
-			System.setProperty("org.sakaiproject.component.defaultServerId", "");
 		}
 	}
 }

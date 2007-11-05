@@ -6,16 +6,9 @@
 
 	<bean id="org.sakaiproject.component.DefaultSakaiProperties" abstract="true" class="org.sakaiproject.util.SakaiProperties">
 		<property name="properties">
-			<props>
-				<prop key="serverId">${org.sakaiproject.component.defaultServerId}</prop>
-			</props>
+			<bean class="org.sakaiproject.component.impl.DynamicDefaultSakaiProperties" init-method="init"/>
 		</property>
-		<!--
-			Due to Sakai's peculiar classloader situation, the only classpath resources
-			which can be injected into a component are ones in "shared/lib". Note,
-			however, that the component class code itself can find resources via
-			the usual "getClassloader().getResources()" calls.
-		-->
+
 		<property name="locations">
 			<list>
 				<value>classpath:/org/sakaiproject/config/sakai.properties</value>
@@ -44,7 +37,7 @@
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean id="org.sakaiproject.component.SakaiPropertyPromoter" class="org.sakaiproject.util.SakaiPropertyPromoter">
 		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
 		<property name="sakaiPropertyToSystemPropertyMap">
@@ -57,21 +50,5 @@
 			</map>
 		</property>
 	</bean>
-
-<!--
-	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
-			class="org.sakaiproject.component.impl.BasicConfigurationService"
-			init-method="init"
-			destroy-method="destroy">
-
-		<property name="threadLocalManager" ref="org.sakaiproject.thread_local.api.ThreadLocalManager" />
-		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
-
-		<property name="toolOrderFile" value="${sakai.home}toolOrder.xml"/>
-		<property name="defaultToolOrderResource" value="classpath:/org/sakaiproject/config/toolOrder.xml"/>
-
-		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
-	</bean>
--->
 
 </beans>
