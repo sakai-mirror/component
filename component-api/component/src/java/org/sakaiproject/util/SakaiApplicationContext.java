@@ -98,7 +98,7 @@ public class SakaiApplicationContext extends GenericApplicationContext {
 	 * @param beanFactory
 	 */
 	public void invokePostProcessorCreators(ConfigurableListableBeanFactory beanFactory) {
-		String[] postProcessorCreatorNames = beanFactory.getBeanNamesForType(BeanFactoryPostProcessorCreator.class);
+		String[] postProcessorCreatorNames = beanFactory.getBeanNamesForType(BeanFactoryPostProcessorCreator.class, false, false);
 		for (int i = 0; i < postProcessorCreatorNames.length; i++) {
 			BeanFactoryPostProcessorCreator postProcessorCreator = (BeanFactoryPostProcessorCreator)beanFactory.getBean(postProcessorCreatorNames[i]);
 			for (BeanFactoryPostProcessor beanFactoryPostProcessor : postProcessorCreator.getBeanFactoryPostProcessors()) {
