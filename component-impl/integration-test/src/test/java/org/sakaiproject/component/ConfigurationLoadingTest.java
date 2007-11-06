@@ -66,10 +66,7 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 	}
 	
 	public void testSakaiProperties() throws Exception {
-		// This test assumes that your "sakai.properties" file sets
-		// "loadedTomcatSakaiProperties" to true, doesn't change the
-		// default "gatewaySiteId" property, and changes the default value of a
-		// TestComponent string property.
+		// Check that the test sakai-configuration.xml and sakai.properties files have been loaded.
 		Assert.assertTrue(serverConfigurationService.getString("loadedTomcatSakaiProperties").equals("true"));
 		Assert.assertTrue(serverConfigurationService.getString("gatewaySiteId").equals("!gateway"));
 		ITestComponent testComponent = (ITestComponent)getService(ITestComponent.class.getName());
@@ -90,6 +87,10 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		String[] stringArrayPlaceholder1 = testComponent.getStringArrayPlaceholder1();
 		Assert.assertTrue(stringArrayPlaceholder1.length == 4);
 		Assert.assertTrue(stringArrayPlaceholder1[0].equals("peculiar1"));
+		
+		// Test for promotion of certain Sakai properties to system properties.
+		String uploadMax = System.getProperty("sakai.content.upload.max");
+		Assert.assertTrue(uploadMax.equals("5"));
 	}
 	
 	public static void initializeSakaiHome() {

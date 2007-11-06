@@ -38,7 +38,7 @@
 		</property>
 	</bean>
 
-	<bean id="org.sakaiproject.component.SakaiPropertyPromoter" class="org.sakaiproject.util.SakaiPropertyPromoter">
+	<bean id="org.sakaiproject.component.SakaiPropertyPromoter" class="org.sakaiproject.util.SakaiPropertyPromoter" init-method="init">
 		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
 		<property name="sakaiPropertyToSystemPropertyMap">
 			<map>
