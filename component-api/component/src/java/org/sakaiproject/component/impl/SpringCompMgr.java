@@ -96,11 +96,15 @@ public class SpringCompMgr implements ComponentManager
 	{
 		if (m_ac != null) return;
 
+		long start = System.currentTimeMillis();
+		long end = start;
 		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
 
 		// load component packages
 		loadComponents();
-
+		
+		end = System.currentTimeMillis();
+		long tloadComponents = (end-start);
 		// if configured (with the system property CLOSE_ON_SHUTDOWN set), create a shutdown task to close when the JVM closes
 		// (otherwise we will close in removeChildAc() when the last child is gone)
 		if (System.getProperty(CLOSE_ON_SHUTDOWN) != null)
@@ -210,6 +214,7 @@ public class SpringCompMgr implements ComponentManager
 
 		// post process the definitions from components with overrides from these properties
 		// - these get injected into the beans
+		start = System.currentTimeMillis();
 		try
 		{
 			PropertyOverrideConfigurer pushProcessor = new PropertyOverrideConfigurer();
@@ -221,9 +226,12 @@ public class SpringCompMgr implements ComponentManager
 		{
 			M_log.warn(t.getMessage(), t);
 		}
+		end = System.currentTimeMillis();
+		long tPostInjection = (end-start);
 
 		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder
 		// values
+		start = System.currentTimeMillis();
 		try
 		{
 			PropertyPlaceholderConfigurer pullProcessor = new PropertyPlaceholderConfigurer();
@@ -234,11 +242,14 @@ public class SpringCompMgr implements ComponentManager
 		{
 			M_log.warn(t.getMessage(), t);
 		}
+		end = System.currentTimeMillis();
+		long tPostProcess = (end-start);
 
 		// set some system properties from the configuration values
 		promotePropertiesToSystem(m_config);
 
 		// get our special log handler started before the rest
+		start = System.currentTimeMillis();
 		try
 		{
 			m_ac.getBean("org.sakaiproject.log.api.LogConfigurationManager");
@@ -257,6 +268,14 @@ public class SpringCompMgr implements ComponentManager
 		{
 			M_log.warn(t.getMessage(), t);
 		}
+		end = System.currentTimeMillis();
+		long tFinalRefresh = (end-start);
+		
+		M_log.info("LoadComponents "+tloadComponents);
+		M_log.info("PostInjection "+tPostInjection);
+		M_log.info("PostProcess  "+tPostProcess);
+		M_log.info("Final Refresh "+tFinalRefresh);
+		M_log.info("Time taken Loading "+tloadComponents);
 	}
 
 	/**

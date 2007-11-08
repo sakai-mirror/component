@@ -43,5 +43,6 @@ limitations under the License.
      <module>component-impl/impl</module>
      <module>component-impl/pack</module>
      <module>component-shared-deploy</module>
+     <module>component-loader</module>
   </modules>
 </project>

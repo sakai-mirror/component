@@ -21,16 +21,26 @@
 
 package org.sakaiproject.component.cover;
 
+import java.lang.management.ManagementFactory;
 import java.util.Set;
 
-import org.sakaiproject.component.impl.SpringCompMgr;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.proxy.ComponentManagerProxy;
 
 /**
  * <p>
- * ComponentManager is a static Cover for the {@link org.sakaiproject.component.api.ComponentManager Component Manager}; see that interface for usage details.
+ * ComponentManager is a static Cover for the
+ * {@link org.sakaiproject.component.api.ComponentManager Component Manager};
+ * see that interface for usage details.
  * </p>
  * <p>
- * This cover is special. As a cover for the component manager, it cannot use the component manager to find the instance. Instead, this is where a static single-instance singleton ComponentManger of a particular type is created.
+ * This cover is special. As a cover for the component manager, it cannot use
+ * the component manager to find the instance. Instead, this is where a static
+ * single-instance singleton ComponentManger of a particular type is created.
  * </p>
  */
 public class ComponentManager
@@ -38,8 +48,13 @@ public class ComponentManager
 	/** A component manager - use the Spring based one. */
 	private static org.sakaiproject.component.api.ComponentManager m_componentManager = null;
 
-	/** If true, covers will cache the components they find once - good for production, bad for some unit testing. */
+	/**
+	 * If true, covers will cache the components they find once - good for
+	 * production, bad for some unit testing.
+	 */
 	public static final boolean CACHE_COMPONENTS = true;
+
+	private static final Log log = LogFactory.getLog(ComponentManager.class);
 
 	public static java.lang.String SAKAI_COMPONENTS_ROOT_SYS_PROP = org.sakaiproject.component.api.ComponentManager.SAKAI_COMPONENTS_ROOT_SYS_PROP;
 
@@ -52,17 +67,20 @@ public class ComponentManager
 	 */
 	public static org.sakaiproject.component.api.ComponentManager getInstance()
 	{
-		// make sure we make only one instance
-		synchronized (m_syncObj)
+		try
 		{
-			// if we do not yet have our component manager instance, create and init / populate it
-			if (m_componentManager == null)
-			{
-				m_componentManager = new SpringCompMgr(null);
-				((SpringCompMgr) m_componentManager).init();
-			}
-		}
 
+			// the following sequence takes about 1ns to execute.
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			ObjectName componentManager = new ObjectName(
+					org.sakaiproject.component.api.ComponentManager.MBEAN_COMPONENT_MANAGER);
+			m_componentManager = (org.sakaiproject.component.api.ComponentManager) mbs
+					.getAttribute(componentManager, "ComponentManager");
+		}
+		catch (Exception ex)
+		{
+			log.error("Unable to get reference to component Manager ", ex);
+		}
 		return m_componentManager;
 	}
 

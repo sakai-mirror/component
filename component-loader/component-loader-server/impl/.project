@@ -1,0 +1,15 @@
+<projectDescription>
+  <name>sakai-component-loader-server</name>
+  <comment/>
+  <projects>
+    <project>sakai-component-loader-common</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>

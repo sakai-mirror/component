@@ -34,6 +34,8 @@ public interface ComponentManager
 	/** The java system property name where the full path to the components packages. */
 	public static final String SAKAI_COMPONENTS_ROOT_SYS_PROP = "sakai.components.root";
 
+	public static final String MBEAN_COMPONENT_MANAGER = "Sakai:type=ComponentManager";
+
 	/**
 	 * Find a component that is registered to provide this interface.
 	 * 
