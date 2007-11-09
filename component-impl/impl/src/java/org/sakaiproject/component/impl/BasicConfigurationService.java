@@ -126,8 +126,6 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 */
 	public void init()
 	{
-		// Start by setting any system properties that other components
-		// might depend on.
 		this.properties = sakaiProperties.getProperties();
 
 		try

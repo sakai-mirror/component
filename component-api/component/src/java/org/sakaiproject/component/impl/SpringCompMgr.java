@@ -22,28 +22,19 @@
 package org.sakaiproject.component.impl;
 
 import java.io.File;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
-import org.sakaiproject.util.BeanFactoryPostProcessorCreator;
 import org.sakaiproject.util.ComponentsLoader;
-import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.SakaiApplicationContext;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 /**
  * <p>
@@ -81,9 +72,6 @@ public class SpringCompMgr implements ComponentManager
 
 	/** A count of the # of child AC's that call us parent. */
 	protected int m_childCount = 0;
-
-	/** A set of properties used when configuring components. */
-	protected Properties m_config = null;
 
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
@@ -361,14 +349,6 @@ public class SpringCompMgr implements ComponentManager
 		}
 
 		return catalina;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public Properties getConfig()
-	{
-		return m_config;
 	}
 
 	/**
