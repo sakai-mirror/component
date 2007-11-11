@@ -24,7 +24,7 @@ public class SakaiLoader implements LifecycleListener
 
 	private static final String MBEAN_CONTAINER = "Catalina:type=Host,host=localhost";
 
-	private static final String COMPONENT_MANAGER_CLASS = "uk.co.tfd.loader.shared.SharedComponentManager";
+	private static final String COMPONENT_MANAGER_CLASS = "org.sakaiproject.component.loader.shared.SharedComponentManager";
 
 	private CommonLifecycle componentManager;
 
@@ -103,6 +103,7 @@ public class SakaiLoader implements LifecycleListener
 		{
 			Class clazz = sharedClassloader.loadClass(COMPONENT_MANAGER_CLASS);
 			componentManager = (CommonLifecycle) clazz.newInstance();
+			log.info("Starting Component Manager "+clazz.getName());
 			componentManager.start();
 		}
 		finally

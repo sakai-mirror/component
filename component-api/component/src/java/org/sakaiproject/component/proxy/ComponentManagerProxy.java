@@ -60,8 +60,10 @@ public class ComponentManagerProxy implements ComponentManager
 			// the following sequence takes about 1ns to execute.
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 			ObjectName componentManagerName = new ObjectName(MBEAN_COMPONENT_MANAGER);
-			componentManager = (ComponentManager) mbs.getAttribute(componentManagerName,
-					"ComponentManager");
+			componentManager = (ComponentManager) mbs.invoke(componentManagerName, "getComponentManager", null, null);
+
+//			componentManager = (ComponentManager) mbs.getAttribute(componentManagerName,
+//					"ComponentManager");
 		}
 		catch (Exception ex)
 		{

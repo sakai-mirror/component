@@ -74,8 +74,12 @@ public class ComponentManager
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 			ObjectName componentManager = new ObjectName(
 					org.sakaiproject.component.api.ComponentManager.MBEAN_COMPONENT_MANAGER);
-			m_componentManager = (org.sakaiproject.component.api.ComponentManager) mbs
+			
+			m_componentManager = (org.sakaiproject.component.api.ComponentManager) mbs.invoke(componentManager, "getComponentManager", null, null);
+			/*
+			 m_componentManager = (org.sakaiproject.component.api.ComponentManager) mbs
 					.getAttribute(componentManager, "ComponentManager");
+					*/
 		}
 		catch (Exception ex)
 		{
