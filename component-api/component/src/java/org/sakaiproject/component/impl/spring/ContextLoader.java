@@ -19,7 +19,7 @@
  *
  **********************************************************************************/
 
-package org.sakaiproject.component.impl;
+package org.sakaiproject.component.impl.spring;
 
 import java.io.IOException;
 
@@ -27,6 +27,7 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.api.spring.SpringComponentManager;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -104,7 +105,7 @@ public class ContextLoader extends org.springframework.web.context.ContextLoader
 	protected ApplicationContext loadParentContext(ServletContext servletContext) throws BeansException
 	{
 		// get the component manager (we know it's a SpringCompMgr) and from that the shared AC
-		ConfigurableApplicationContext sharedAc = ((SpringCompMgr) ComponentManager.getInstance()).getApplicationContext();
+		ApplicationContext sharedAc = ((SpringComponentManager) ComponentManager.getInstance()).getRootContext();
 
 		return sharedAc;
 	}

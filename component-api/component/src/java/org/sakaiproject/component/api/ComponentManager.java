@@ -41,7 +41,7 @@ public interface ComponentManager
 	 *        The interface Class.
 	 * @return a component instance, or null if not found.
 	 */
-	Object get(Class iface);
+	Object get(Class<?> iface);
 
 	/**
 	 * Find a component that is registered to provide this interface.
@@ -59,7 +59,7 @@ public interface ComponentManager
 	 *        The interface Class.
 	 * @return <strong>true</strong> if this interface Class has a registered component, <strong>false</strong> if not.
 	 */
-	boolean contains(Class iface);
+	boolean contains(Class<?> iface);
 
 	/**
 	 * Check if this interface Class name has a registered component.
@@ -75,7 +75,7 @@ public interface ComponentManager
 	 * 
 	 * @return A Set (String class name) of all interfaces registered in the component manager.
 	 */
-	Set getRegisteredInterfaces();
+	Set<String> getRegisteredInterfaces();
 
 	/**
 	 * Load a singleton already created component for this interface class as a singleton.
@@ -84,8 +84,9 @@ public interface ComponentManager
 	 *        The interface class.
 	 * @param component
 	 *        The alread created component.
+	 * @deprecated
 	 */
-	void loadComponent(Class iface, Object component);
+	void loadComponent(Class<?> iface, Object component);
 
 	/**
 	 * Load a singleton already created component for this interface class as a singleton.
@@ -94,6 +95,7 @@ public interface ComponentManager
 	 *        The fully qualified interface Class name.
 	 * @param component
 	 *        The alread created component.
+	 * @deprecated
 	 */
 	void loadComponent(String ifaceName, Object component);
 

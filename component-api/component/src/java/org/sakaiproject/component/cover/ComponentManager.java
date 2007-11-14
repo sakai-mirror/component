@@ -23,7 +23,8 @@ package org.sakaiproject.component.cover;
 
 import java.util.Set;
 
-import org.sakaiproject.component.impl.SpringCompMgr;
+import org.sakaiproject.component.api.spring.SpringComponentManager;
+import org.sakaiproject.component.impl.spring.support.SpringComponentManagerImpl;
 
 /**
  * <p>
@@ -36,7 +37,7 @@ import org.sakaiproject.component.impl.SpringCompMgr;
 public class ComponentManager
 {
 	/** A component manager - use the Spring based one. */
-	private static org.sakaiproject.component.api.ComponentManager m_componentManager = null;
+	private static SpringComponentManager m_componentManager;
 
 	/** If true, covers will cache the components they find once - good for production, bad for some unit testing. */
 	public static final boolean CACHE_COMPONENTS = true;
@@ -58,15 +59,15 @@ public class ComponentManager
 			// if we do not yet have our component manager instance, create and init / populate it
 			if (m_componentManager == null)
 			{
-				m_componentManager = new SpringCompMgr(null);
-				((SpringCompMgr) m_componentManager).init();
+				m_componentManager = new SpringComponentManagerImpl();
+				m_componentManager.init();
 			}
 		}
 
 		return m_componentManager;
 	}
 
-	public static Object get(Class iface)
+	public static Object get(Class<?> iface)
 	{
 		return getInstance().get(iface);
 	}
@@ -76,7 +77,7 @@ public class ComponentManager
 		return getInstance().get(ifaceName);
 	}
 
-	public static boolean contains(Class iface)
+	public static boolean contains(Class<?> iface)
 	{
 		return getInstance().contains(iface);
 	}
@@ -86,12 +87,12 @@ public class ComponentManager
 		return getInstance().contains(ifaceName);
 	}
 
-	public static Set getRegisteredInterfaces()
+	public static Set<String> getRegisteredInterfaces()
 	{
 		return getInstance().getRegisteredInterfaces();
 	}
 
-	public static void loadComponent(Class iface, Object component)
+	public static void loadComponent(Class<?> iface, Object component)
 	{
 		getInstance().loadComponent(iface, component);
 	}
