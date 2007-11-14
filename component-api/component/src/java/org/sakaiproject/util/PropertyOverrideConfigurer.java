@@ -40,6 +40,7 @@
 
 package org.sakaiproject.util;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,10 +72,10 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer
 	protected boolean ignoreInvalidKeys = false;
 
 	/** Contains names of beans that have overrides */
-	protected Set<String> beanNames = new HashSet<String>();
+	protected Set beanNames = Collections.synchronizedSet(new HashSet());
 
 	/** Here are all the name=value entries we read in. */
-	protected Map<String, String> m_entries = new HashMap<String, String>();
+	protected Map m_entries = new HashMap();
 
 	/**
 	 * Access the value of the entry with this name key
@@ -85,7 +86,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer
 	 */
 	public String getValue(String name)
 	{
-		return m_entries.get(name);
+		return (String) m_entries.get(name);
 	}
 
 	/**
@@ -100,7 +101,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer
 
 	protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props) throws BeansException
 	{
-		for (Enumeration<?> en = props.propertyNames(); en.hasMoreElements();)
+		for (Enumeration en = props.propertyNames(); en.hasMoreElements();)
 		{
 			String key = (String) en.nextElement();
 
