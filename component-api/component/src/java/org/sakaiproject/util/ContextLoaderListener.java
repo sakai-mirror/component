@@ -25,9 +25,9 @@ import javax.servlet.ServletContextEvent;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.api.spring.SpringComponentManager;
 import org.sakaiproject.component.cover.ComponentManager;
-import org.sakaiproject.component.impl.ContextLoader;
-import org.sakaiproject.component.impl.SpringCompMgr;
+import org.sakaiproject.component.impl.spring.ContextLoader;
 
 /**
  * <p>
@@ -56,7 +56,7 @@ public class ContextLoaderListener extends org.springframework.web.context.Conte
 		super.contextInitialized(event);
 
 		// increment the count of children for the component manager
-		((SpringCompMgr) ComponentManager.getInstance()).addChildAc();
+		((SpringComponentManager) ComponentManager.getInstance()).addChildAc();
 	}
 
 	/**
@@ -69,6 +69,6 @@ public class ContextLoaderListener extends org.springframework.web.context.Conte
 		log.info("Destroying Components in "+event.getServletContext().getServletContextName());
 
 		// decrement the count of children for the component manager
-		((SpringCompMgr) ComponentManager.getInstance()).removeChildAc();
+		((SpringComponentManager) ComponentManager.getInstance()).removeChildAc();
 	}
 }
