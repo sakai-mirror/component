@@ -38,6 +38,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  */
 public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory {
 	
+	
 	public void preInstantiateSingletons() throws BeansException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Pre-instantiating singletons in factory [" + this + "]");
@@ -79,4 +80,5 @@ public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactor
 			throw ex;
 		}
 	}
+
 }

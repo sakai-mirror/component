@@ -38,6 +38,7 @@ import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ComponentsLoader;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.PropertyOverrideConfigurer;
+import org.sakaiproject.util.SpringComponentManager;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -52,7 +53,7 @@ import org.springframework.core.io.ClassPathResource;
  * See the {@link org.sakaiproject.api.kernel.component.ComponentManager}interface for details.
  * </p>
  */
-public class SpringCompMgr implements ComponentManager
+public class SpringCompMgr implements ComponentManager, SpringComponentManager
 {
 	/** Our log (commons). */
 	private static Log M_log = LogFactory.getLog(SpringCompMgr.class);
@@ -74,6 +75,8 @@ public class SpringCompMgr implements ComponentManager
 
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
+
+	private NoisierDefaultListableBeanFactory nbf;
 
 	/**
 	 * Initialize.
@@ -98,7 +101,8 @@ public class SpringCompMgr implements ComponentManager
 
 		long start = System.currentTimeMillis();
 		long end = start;
-		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
+		nbf = new NoisierDefaultListableBeanFactory();
+		m_ac = new GenericApplicationContext(nbf);
 
 		// load component packages
 		loadComponents();
@@ -681,4 +685,5 @@ public class SpringCompMgr implements ComponentManager
 	{
 		return m_hasBeenClosed;
 	}
+	
 }

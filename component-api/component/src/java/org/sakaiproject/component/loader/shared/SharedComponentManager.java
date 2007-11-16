@@ -4,10 +4,12 @@
 package org.sakaiproject.component.loader.shared;
 
 import java.lang.management.ManagementFactory;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.Descriptor;
 import javax.management.MBeanException;
+import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.RuntimeOperationsException;
@@ -17,6 +19,7 @@ import javax.management.modelmbean.ModelMBeanInfo;
 import javax.management.modelmbean.ModelMBeanInfoSupport;
 import javax.management.modelmbean.ModelMBeanOperationInfo;
 import javax.management.modelmbean.RequiredModelMBean;
+import javax.management.openmbean.CompositeData;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,13 +51,19 @@ public class SharedComponentManager implements CommonLifecycle
 
 	private CopyOnWriteArraySet<CommonLifecycleListener> listeners = new CopyOnWriteArraySet<CommonLifecycleListener>();
 
+	private Date lastLoadDate;
+
+	private long loadTime;
+
 	public void start()
 	{
 		log
 				.info("Component Manager is starting =========================================================================");
 		try
 		{
+			long start = System.currentTimeMillis();
 			lifecycleEvent(CommonLifecycleEvent.BEFORE_START);
+			lastLoadDate = new Date();
 			cm = new SpringCompMgr(null);
 
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -68,8 +77,30 @@ public class SharedComponentManager implements CommonLifecycle
 			
 
 			cm.init();
+			
+			System.runFinalization();
+			Runtime.getRuntime().gc();
+			
+			CompositeData permGen = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Perm Gen"), "Usage");
+			CompositeData tenuredGen = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Tenured Gen"), "Usage");
+			CompositeData codeCache = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Code Cache"), "Usage");
+			CompositeData edenSpace = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Eden Space"), "Usage");
+			CompositeData survivorSpace = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Survivor Space"), "Usage");
+			long permGenUsed = Long.parseLong(String.valueOf(permGen.get("used")));
+			long codeCacheUsed = Long.parseLong(String.valueOf(codeCache.get("used")));
+			long edenSpaceUsed = Long.parseLong(String.valueOf(edenSpace.get("used")));
+			long tenuredGenUsed = Long.parseLong(String.valueOf(tenuredGen.get("used")));
+			long survivorSpaceUsed = Long.parseLong(String.valueOf(survivorSpace.get("used")));
+			
+			log.info("           Permgen Used "+permGenUsed/(1024*1024)+" MB");
+			log.info("           Code Cache Used "+codeCacheUsed/(1024*1024)+" MB");
+			log.info("           Eden Used "+edenSpaceUsed/(1024*1024)+" MB");
+			log.info("           Tenured Used "+tenuredGenUsed/(1024*1024)+" MB");
+			log.info("           Survivour Used "+survivorSpaceUsed/(1024*1024)+" MB");
+			
 			lifecycleEvent(CommonLifecycleEvent.START);
 			lifecycleEvent(CommonLifecycleEvent.AFTER_START);
+			loadTime = System.currentTimeMillis() - start;
 
 		}
 		catch (Throwable ex)
@@ -87,22 +118,31 @@ public class SharedComponentManager implements CommonLifecycle
 	 */
 	private ModelMBeanInfo createMBeanInfo()
 	{
-		/*
-		Descriptor atDesc = new DescriptorSupport(new String[] {
-	                 "name=ComponentManager",
+		Descriptor lastLoadDate = new DescriptorSupport(new String[] {
+	                 "name=LastLoadDate",
 	                 "descriptorType=attribute",
 	                 "default=0",
-	                 "displayName=Sakai ComponentManager",
-	                 "getMethod=getComponentManager"
+	                 "displayName=Last Load Date",
+	                 "getMethod=getLastLoadDate"
 	                }
 	                );
+		Descriptor lastLoadTime = new DescriptorSupport(new String[] {
+                "name=LastLoadTime",
+                "descriptorType=attribute",
+                "default=0",
+                "displayName=Last Load Time",
+                "getMethod=getLoadTime"
+               }
+               );
 
-	    ModelMBeanAttributeInfo [] mmbai = new ModelMBeanAttributeInfo[1];
-	    mmbai[0] = new ModelMBeanAttributeInfo("ComponentManager","org.sakaiproject.component.api.ComponentManager",
-	      "The Sakai Component Manager",  true,false, false, atDesc);
-	      */
+	    ModelMBeanAttributeInfo [] mmbai = new ModelMBeanAttributeInfo[2];
+	    mmbai[0] = new ModelMBeanAttributeInfo("LastLoadDate","java.util.Date",
+	      "Last Load Date",  true,false, false, lastLoadDate);
+	    
+	    mmbai[1] = new ModelMBeanAttributeInfo("LastLoadTime","java.lang.Long",
+	  	      "Last Load Time",  true,false, false, lastLoadTime);
 
-	    ModelMBeanOperationInfo [] mmboi = new ModelMBeanOperationInfo[3];
+	    ModelMBeanOperationInfo [] mmboi = new ModelMBeanOperationInfo[7];
 
 	    mmboi[0] = new ModelMBeanOperationInfo("start", 
 	    "Start the Component Manager", null, "void", ModelMBeanOperationInfo.ACTION
@@ -111,7 +151,28 @@ public class SharedComponentManager implements CommonLifecycle
 	    	    "Stop the Component Manager", null, "void", ModelMBeanOperationInfo.ACTION
 	    	    );
 	    mmboi[2] = new ModelMBeanOperationInfo("getComponentManager", 
-	    	    "Get the Current Component Manager", null, "org.sakaiproject.component.api.ComponentManager", ModelMBeanOperationInfo.INFO
+	    	    "Get the Current Component Manager", null, ComponentManager.class.getName(), ModelMBeanOperationInfo.INFO
+	    	    );
+	    
+	    mmboi[3] = new ModelMBeanOperationInfo("addComponentManagerLifecycleListener", 
+	    	    "Add a listener to the component lifecycle", 
+	    	    new MBeanParameterInfo[] {new MBeanParameterInfo("Lifecycle Listener",CommonLifecycleListener.class.getName(),"The Lifecycle Listener to be added") }, 
+	    	    "void", ModelMBeanOperationInfo.ACTION
+	    	    );
+	    mmboi[4] = new ModelMBeanOperationInfo("removeComponentManagerLifecycleListener", 
+	    	    "Remove a listener to the component lifecycle", 
+	    	    new MBeanParameterInfo[] {new MBeanParameterInfo("Lifecycle Listener",CommonLifecycleListener.class.getName(),"The Lifecycle Listener to be removed") }, 
+	    	    "void", ModelMBeanOperationInfo.ACTION
+	    	    );
+	    mmboi[5] = new ModelMBeanOperationInfo("getLastLoadDate", 
+	    	    "The date the component manager was last loaded", 
+	    	    null, 
+	    	    "java.util.Date", ModelMBeanOperationInfo.INFO
+	    	    );
+	    mmboi[6] = new ModelMBeanOperationInfo("getLoadTime", 
+	    	    "The time it took to load the component manager", 
+	    	    null, 
+	    	    "long", ModelMBeanOperationInfo.INFO
 	    	    );
 	    
 
@@ -136,7 +197,7 @@ public class SharedComponentManager implements CommonLifecycle
 		*/
 	    
 	    return new ModelMBeanInfoSupport(this.getClass().getName(),
-	    "Sakai Component Manager", null, null, mmboi, null);
+	    "Sakai Component Manager", mmbai, null, mmboi, null);
 	}
 
 	public void stop()
@@ -213,7 +274,13 @@ public class SharedComponentManager implements CommonLifecycle
 	{
 		listeners.remove(listener);
 	}
+
+	public Date getLastLoadDate() {
+		return lastLoadDate;
+	}
 	
-	
+	public long getLoadTime() {
+		return loadTime;
+	}
 
 }

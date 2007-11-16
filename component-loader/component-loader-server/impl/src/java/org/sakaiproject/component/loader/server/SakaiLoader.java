@@ -1,5 +1,11 @@
 package org.sakaiproject.component.loader.server;
 
+import java.lang.management.ManagementFactory;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.apache.catalina.Engine;
@@ -87,6 +93,7 @@ public class SakaiLoader implements LifecycleListener
 		}
 	}
 
+
 	private void startComponentManager() throws Exception
 	{
 		ObjectName pname = new ObjectName(MBEAN_CONTAINER);
@@ -103,7 +110,7 @@ public class SakaiLoader implements LifecycleListener
 		{
 			Class clazz = sharedClassloader.loadClass(COMPONENT_MANAGER_CLASS);
 			componentManager = (CommonLifecycle) clazz.newInstance();
-			log.info("Starting Component Manager "+clazz.getName());
+			log.info("Starting Component Manager " + clazz.getName());
 			componentManager.start();
 		}
 		finally
