@@ -43,6 +43,10 @@ import org.springframework.core.io.Resource;
  * 
  * This class creates separate PropertyPlaceholderConfigurer and PropertyOverrideConfigurer
  * objects to handle bean configuration, and loads them with the input properties.
+ * 
+ * SakaiProperties configuration supports most of the properties documented for 
+ * PropertiesFactoryBean, PropertyPlaceholderConfigurer, and PropertyOverrideConfigurer.
+ *  
  */
 public class SakaiProperties implements BeanFactoryPostProcessorCreator, InitializingBean {
 	private static Log log = LogFactory.getLog(SakaiProperties.class);

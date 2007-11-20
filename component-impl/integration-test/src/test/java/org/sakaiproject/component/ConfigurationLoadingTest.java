@@ -72,7 +72,7 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		ITestComponent testComponent = (ITestComponent)getService(ITestComponent.class.getName());
 		Assert.assertTrue(testComponent.getOverrideString1().equals("nondefault"));
 		Assert.assertTrue(testComponent.getPlaceholderString1().equals("nondefault"));
-		log.warn("serverId=" + testComponent.getServerId());
+		if (log.isDebugEnabled()) log.debug("serverId=" + testComponent.getServerId());
 		String testBean = (String)getService("org.sakaiproject.component.test.String");
 		Assert.assertTrue(testBean.equals("local"));
 		ITestProvider testProvider = (ITestProvider)getService(ITestProvider.class.getName());
