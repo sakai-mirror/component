@@ -25,7 +25,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
@@ -45,11 +47,11 @@ import org.springframework.core.io.Resource;
  * Load the available Sakai components into the shared component manager's Spring ApplicationContext
  * </p>
  */
-public class ComponentsLoader implements org.sakaiproject.component.api.ComponentsLoader
+public class ComponentsLoader
 {
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
-
+	
 	public ComponentsLoader()
 	{
 	}
@@ -57,13 +59,10 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	/**
 	 * 
 	 */
-	public void load(ComponentManager mgr, String componentsRoot)
+	public void load(ConfigurableApplicationContext ac, String componentsRoot)
 	{
 		try
 		{
-			// get the ComponentManager's AC - assuming this is a SpringCompMgr. If not, this will throw.
-			ConfigurableApplicationContext ac = ((SpringCompMgr) mgr).getApplicationContext();
-
 			// get a list of the folders in the root
 			File root = new File(componentsRoot);
 
@@ -75,19 +74,21 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			}
 
 			// what component packages are there?
-			File[] packages = root.listFiles();
+			File[] packageArray = root.listFiles();
 
-			if (packages == null)
+			if (packageArray == null)
 			{
 				M_log.warn("load: empty directory: " + componentsRoot);
 				return;
 			}
+			
+			List<File> packages = new ArrayList<File>(Arrays.asList(packageArray));
 
 			// for testing, we might reverse load order
 			final int reverse = System.getProperty("sakai.components.reverse.load") != null ? -1 : 1;
 
 			// assure a consistent order - sort these files
-			Arrays.sort(packages, new Comparator()
+			Collections.sort(packages, new Comparator()
 			{
 				public int compare(Object o1, Object o2)
 				{
@@ -97,20 +98,20 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 					return sort * reverse;
 				}
 			});
-
+			
 			M_log.info("load: loading components from: " + componentsRoot);
 
 			// process the packages
-			for (int p = 0; p < packages.length; p++)
+			for (File packageDir : packages)
 			{
 				// if a valid components directory
-				if (validComponentsPackage(packages[p]))
+				if (validComponentsPackage(packageDir))
 				{
-					loadComponentPackage(packages[p], ac);
+					loadComponentPackage(packageDir, ac);
 				}
 				else
 				{
-					M_log.warn("load: skipping non-package entry: " + packages[p]);
+					M_log.warn("load: skipping non-package entry: " + packageDir);
 				}
 			}
 		}
@@ -153,7 +154,8 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			// classloader property is set.
 			reader.setBeanClassLoader(loader);
 			
-			Resource[] beanDefs = null;
+			List<Resource> beanDefList = new ArrayList<Resource>();
+			beanDefList.add(new FileSystemResource(xml.getCanonicalPath()));
 			
 			// Load the demo components, if necessary
 			File demoXml = new File(webinf, "components-demo.xml");
@@ -163,11 +165,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 				if(demoXml.exists())
 				{
 					if(M_log.isInfoEnabled()) M_log.info("Loading demo components from " + dir);
-					beanDefs = new Resource[]
-					{
-							new FileSystemResource(xml.getCanonicalPath()),
-							new FileSystemResource(demoXml.getCanonicalPath())
-					};
+					beanDefList.add(new FileSystemResource(demoXml.getCanonicalPath()));
 				}
 			}
 			else
@@ -178,13 +176,8 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 					if(M_log.isInfoEnabled()) M_log.info("Skipping demo components from " + dir);
 				}
 			}
-			
-			if(beanDefs == null)
-			{
-				beanDefs = new Resource[] {new FileSystemResource(xml.getCanonicalPath())};
-			}
-			
-			reader.loadBeanDefinitions(beanDefs);
+						
+			reader.loadBeanDefinitions(beanDefList.toArray(new Resource[0]));
 		}
 		catch (Throwable t)
 		{
