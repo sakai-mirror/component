@@ -38,8 +38,8 @@
 		</property>
 	</bean>
 
-	<bean id="org.sakaiproject.component.SakaiPropertyPromoter" class="org.sakaiproject.util.SakaiPropertyPromoter" init-method="init">
-		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
+	<bean id="org.sakaiproject.component.SakaiPropertyPromoter" class="org.sakaiproject.component.impl.spring.support.SakaiPropertyPromoter" init-method="init">
+		<property name="sakaiPropertiesFactory" ref="org.sakaiproject.component.SakaiPropertiesFactory"/>
 		<property name="sakaiPropertyToSystemPropertyMap">
 			<map>
 				<entry key="serverId" value="sakai.serverId"/>
