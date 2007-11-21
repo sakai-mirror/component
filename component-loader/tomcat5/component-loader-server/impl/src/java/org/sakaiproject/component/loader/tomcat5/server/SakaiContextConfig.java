@@ -19,7 +19,7 @@
  *
  **********************************************************************************/
 
-package org.sakaiproject.component.loader.server;
+package org.sakaiproject.component.loader.tomcat5.server;
 
 import java.lang.management.ManagementFactory;
 
