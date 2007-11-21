@@ -5,14 +5,14 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>component-loader-tc5-base</artifactId>
+    <artifactId>component-loader-tc6-base</artifactId>
     <groupId>org.sakaiproject</groupId>
     <version>SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <name>sakai-component-loader-tc5-server</name>
+  <name>sakai-component-loader-tc6-server</name>
   <groupId>org.sakaiproject</groupId>
-  <artifactId>sakai-component-loader-tc5-server</artifactId>
+  <artifactId>sakai-component-loader-tc6-server</artifactId>
   <packaging>jar</packaging>
   <properties>
     <deploy.target>server</deploy.target>

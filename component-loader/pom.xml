@@ -15,7 +15,7 @@
 
   <packaging>pom</packaging>
   <modules>
-    <module>component-loader-common/impl</module>
-    <module>component-loader-server/impl</module>
+    <module>tomcat5</module>
+    <module>tomcat6</module>
   </modules>
 </project>
