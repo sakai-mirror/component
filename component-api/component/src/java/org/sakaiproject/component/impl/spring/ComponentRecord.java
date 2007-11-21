@@ -13,13 +13,13 @@ public class ComponentRecord {
     
     public MethodInterceptor interceptor;
     
-    public StaggeredRefreshApplicationContext cac;
+    public StaggeredRefreshApplicationContext sfac;
 
     public ComponentRecord(String componentName, ClassLoader classLoader,
-            StaggeredRefreshApplicationContext cac) {
+            StaggeredRefreshApplicationContext sfac) {
         this.componentName = componentName;
         this.classLoader = classLoader;
-        this.cac = cac;
+        this.sfac = sfac;
         this.interceptor = new InvocationInterceptor(classLoader);
     }
 }

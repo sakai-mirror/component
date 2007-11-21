@@ -73,6 +73,8 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
     private SkeletalBeanFactory rootFactory;
 
     private ConfigurableApplicationContext rootContext;
+    
+    private GenericApplicationContext configContext;
 
     /** The already created components given to manage (their interface names). */
     protected Map<String, Boolean> m_loadedComponents = new ConcurrentHashMap<String, Boolean>();
@@ -122,14 +124,17 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
 
     private void initCore() {
         rootFactory = new SkeletalBeanFactory();
+        configContext = new GenericApplicationContext();
         ComponentRecords records = new ComponentRecords();
         componentManagerCore = new ComponentManagerCore();
         componentManagerCore.setComponentsClassLoader(componentsClassLoader);
         componentManagerCore.setRootContext(rootFactory);
+        componentManagerCore.setConfigContext(configContext);
         componentManagerCore.setRecords(records);
 
         rootFactory.setBeanLocator(componentManagerCore);
         rootContext = new GenericApplicationContext(rootFactory);
+        rootContext.setParent(configContext);
         loadRootContext();
         acquirePostProcessors();
     }
@@ -145,23 +150,23 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
         }
         // Create a new XmlBeanDefinitionReader for the given BeanFactory.
         XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(
-                rootFactory);
+                configContext);
         beanDefinitionReader.setBeanClassLoader(Thread.currentThread()
                 .getContextClassLoader());
-        beanDefinitionReader.setResourceLoader(rootContext);
+        beanDefinitionReader.setResourceLoader(configContext);
         beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(
-                rootContext));
+                configContext));
 
         if (configLocationList.size() > 0) {
             beanDefinitionReader.loadBeanDefinitions(configLocationList
                     .toArray(new String[configLocationList.size()]));
         }
+        configContext.refresh();
         rootContext.refresh();
-        rootFactory.setCoreInitialized();
     }
 
     private void acquirePostProcessors() {
-        String[] postProcessorCreatorNames = rootFactory.getBeanNamesForType(
+        String[] postProcessorCreatorNames = configContext.getBeanNamesForType(
                 BeanFactoryPostProcessorCreator.class, false, false);
         for (int i = 0; i < postProcessorCreatorNames.length; i++) {
             BeanFactoryPostProcessorCreator postProcessorCreator = (BeanFactoryPostProcessorCreator) rootFactory
@@ -359,8 +364,7 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
         }
 
         if (componentsRoot == null) {
-            M_log
-                    .warn("loadComponents: cannot estabish a root directory for the components packages");
+            M_log.warn("loadComponents: cannot estabish a root directory for the components packages");
             return;
         }
 
@@ -429,12 +433,12 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
     }
 
     public void registerComponentContext(ComponentRecord record) {
-        ConfigurableListableBeanFactory clbf = record.cac.getBeanFactory();
+        ConfigurableListableBeanFactory clbf = record.sfac.getBeanFactory();
         for (BeanFactoryPostProcessor bfpp : processors) {
             bfpp.postProcessBeanFactory(clbf);
         }
         componentManagerCore.registerComponentContext(record);
-        record.cac.setParent(rootContext);
+        record.sfac.setParent(rootContext);
     }
 
     public void unregisterComponentContext(String componentName) {

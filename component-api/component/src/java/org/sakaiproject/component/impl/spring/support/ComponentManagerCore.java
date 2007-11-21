@@ -20,8 +20,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * The core logic implementation for the Component Manager. Accepts registration
@@ -40,7 +40,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 public class ComponentManagerCore implements ContextProcessor, BeanLocator {
 
     public final static String CREATE_PROXIES = "sakai.component.createproxies";
-    
+
     private static Log log = LogFactory.getLog(ComponentManagerCore.class);
 
     private DefaultListableBeanFactory rootContext;
@@ -50,7 +50,9 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
     private ClassLoader classLoader;
 
     private Map<String, Object> straySingletons = new ConcurrentHashMap<String, Object>();
-    
+
+    private ConfigurableApplicationContext configContext;
+
     public void setRootContext(DefaultListableBeanFactory rootContext) {
         this.rootContext = rootContext;
     }
@@ -80,10 +82,10 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
         }
         Object concrete = null;
         try {
-            if (!record.cac.isActive()) {
-                record.cac.bareRefresh();
+            if (!record.sfac.isActive()) {
+                record.sfac.bareRefresh();
             }
-            concrete = record.cac.getBean(name);
+            concrete = record.sfac.getBean(name);
         } catch (RuntimeException e) {
             log.error("Failed to preinstantiate the singleton named " + name
                     + ". Destroying all Spring beans.", e);
@@ -94,7 +96,8 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
     }
 
     public void registerSingleton(String name, Object bean) {
-        records.registerComponentForBean(name,
+        records
+                .registerComponentForBean(name,
                         ComponentRecords.STRAY_SINGLETON);
         straySingletons.put(name, bean);
     }
@@ -136,39 +139,43 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
         }
         try {
             return pfb.getObject();
-        }
-        catch (Exception e) {
-            log.info("Failed to construct proxy for bean of class " + cvr.clazz + ": bean will be delivered concretely: " + e.getMessage());
+        } catch (Exception e) {
+            log.info("Failed to construct proxy for bean of class " + cvr.clazz
+                    + ": bean will be delivered concretely: " + e.getMessage());
             return concrete.bean;
         }
     }
 
     public void registerComponentContext(ComponentRecord record) {
         records.registerComponent(record);
-        String[] defs = record.cac.getBeanDefinitionNames();
-        ConfigurableListableBeanFactory clbf = record.cac.getBeanFactory();
+        String[] defs = record.sfac.getBeanDefinitionNames();
+        DefaultListableBeanFactory clbf = (DefaultListableBeanFactory) record.sfac
+                .getBeanFactory();
         for (String defname : defs) {
             BeanDefinition def = clbf.getBeanDefinition(defname);
-            if (def.isAbstract()) {
-                // All abstract definitions can go upstairs. They will only give
-                // rise
-                // to local beans.
-                rootContext.registerBeanDefinition(defname, def);
+            if (configContext.containsBeanDefinition(defname)) {
+                clbf.registerBeanDefinition(defname, configContext.getBeanFactory().getBeanDefinition(defname));
             } else {
-                if (!def.isSingleton()) {
-                    log.warn("Skipping bean definition "
-                                    + defname
-                                    + " from context "
-                                    + record.componentName
-                                    + " from export: only singleton definitions can be exported");
-                } else {
+                if (def.isAbstract()) {
+                    // All abstract definitions can go upstairs. They will only
+                    // give rise to local beans.
                     rootContext.registerBeanDefinition(defname, def);
-                    records.registerComponentForBean(defname,
-                            record.componentName);
+                } else {
+                    if (!def.isSingleton()) {
+                        log
+                                .warn("Skipping bean definition "
+                                        + defname
+                                        + " from context "
+                                        + record.componentName
+                                        + " from export: only singleton definitions can be exported");
+                    } else {
+                        rootContext.registerBeanDefinition(defname, def);
+                        records.registerComponentForBean(defname,
+                                record.componentName);
+                    }
                 }
             }
         }
-
     }
 
     public void unregisterComponentContext(String componentName) {
@@ -181,18 +188,21 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
     public void refreshAll() {
         for (ComponentRecord record : records) {
             try {
-                if (!record.cac.isActive()) {
-                    record.cac.refresh();
-                }
-                else {
-                    record.cac.concludeRefresh();
+                if (!record.sfac.isActive()) {
+                    record.sfac.refresh();
+                } else {
+                    record.sfac.concludeRefresh();
                 }
             } catch (Exception e) {
                 String message = "Error refreshing component context "
-                        + record.componentName;                       
+                        + record.componentName;
                 log.error(message, e);
             }
         }
+    }
+
+    public void setConfigContext(ConfigurableApplicationContext configContext) {
+        this.configContext = configContext;
     }
 
 }

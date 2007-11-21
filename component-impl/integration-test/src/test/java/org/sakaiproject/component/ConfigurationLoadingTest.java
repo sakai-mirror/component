@@ -74,6 +74,7 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		Assert.assertTrue(testComponent.getPlaceholderString1().equals("nondefault"));
 		log.warn("serverId=" + testComponent.getServerId());
 		String testBean = (String)getService("org.sakaiproject.component.test.String");
+
 		Assert.assertTrue(testBean.equals("local"));
 		ITestProvider testProvider = (ITestProvider)getService(ITestProvider.class.getName());
 		//Commented out alias test
@@ -81,11 +82,8 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		
 		Assert.assertTrue(testComponent.getListOverride1().size() == 3);
 		Assert.assertTrue(testComponent.getListOverride1().get(0).equals("nondefault1"));
-		
-		// ** AMB Changed test - semantics are not as originally designed. Local references 
-		//must remain local
-		Assert.assertTrue(testComponent.getMapOverride1().size() == 2);
-		Assert.assertTrue(testComponent.getMapOverride1().get("key1").equals("default1"));
+		Assert.assertTrue(testComponent.getMapOverride1().size() == 3);
+		Assert.assertTrue(testComponent.getMapOverride1().get("key1").equals("nondefault1"));
 		
 		// Test for use of a local properties file other than sakai.properties.
 		String[] stringArrayPlaceholder1 = testComponent.getStringArrayPlaceholder1();
