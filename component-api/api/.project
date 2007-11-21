@@ -1,8 +1,8 @@
 <projectDescription>
-  <name>sakai-component-loader-tc5-server</name>
+  <name>sakai-component-api</name>
   <comment/>
   <projects>
-    <project>sakai-component-loader-common</project>
+    <project>sakai-component</project>
   </projects>
   <buildSpec>
     <buildCommand>

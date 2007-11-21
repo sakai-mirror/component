@@ -1,7 +1,9 @@
 <projectDescription>
   <name>sakai-component-loader-tc6-server</name>
   <comment/>
-  <projects/>
+  <projects>
+    <project>sakai-component-loader-common</project>
+  </projects>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.jdt.core.javabuilder</name>

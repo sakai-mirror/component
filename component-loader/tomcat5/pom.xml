@@ -4,19 +4,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>component-base</artifactId>
+    <artifactId>component-loader-base</artifactId>
     <groupId>org.sakaiproject</groupId>
     <version>SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>org.sakaiproject</groupId>
-  <artifactId>component-loader-base</artifactId>
-  <name>Sakai Loader Project</name>
+  <artifactId>component-loader-tc5-base</artifactId>
+  <name>Sakai Loader Tomcat 5 Project</name>
 
   <packaging>pom</packaging>
   <modules>
-    <module>component-loader-common/impl</module>
-    <module>tomcat5</module>
-    <module>tomcat6</module>
+    <module>component-loader-server/impl</module>
   </modules>
 </project>
