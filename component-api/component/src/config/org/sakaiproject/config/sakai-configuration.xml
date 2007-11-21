@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:util="http://www.springframework.org/schema/util"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
 	<bean id="org.sakaiproject.component.DefaultSakaiProperties" abstract="true" class="org.sakaiproject.component.impl.spring.support.SakaiPropertiesFactory">
 		<property name="properties">
@@ -51,5 +51,12 @@
 			</map>
 		</property>
 	</bean>
+
+  <!--  We can configure more complex object types. -->
+  <util:map id="defaultMap">
+    <entry key="key1" value="nondefault1"/>
+    <entry key="key2" value="nondefault2"/>
+    <entry key="key3" value="nondefault3"/>
+  </util:map>
 
 </beans>

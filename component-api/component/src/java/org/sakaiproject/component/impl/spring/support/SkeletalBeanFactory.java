@@ -6,10 +6,13 @@ package org.sakaiproject.component.impl.spring.support;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.impl.BeanLocator;
 import org.sakaiproject.component.impl.BeanLocatorAcceptor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 /** The class of the core shared context. It needs to be at *least* an
@@ -23,6 +26,8 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
  */
 
 public class SkeletalBeanFactory extends DefaultListableBeanFactory implements BeanLocatorAcceptor {
+    private static Log log = LogFactory.getLog(SkeletalBeanFactory.class);
+    
     private BeanLocator locator;
     private boolean coreInitialized;
     private Set<String> coreBeans = new HashSet<String>();
@@ -31,6 +36,9 @@ public class SkeletalBeanFactory extends DefaultListableBeanFactory implements B
     public Object getBean(String name, Class requiredType, Object[] args) {
         Object singleton = getSingleton(name);
         if (singleton == null) {
+            if (name.startsWith(AbstractBeanFactory.FACTORY_BEAN_PREFIX)) {
+                name = name.substring(AbstractBeanFactory.FACTORY_BEAN_PREFIX.length());
+            }
             if (coreBeans.contains(name)) {
                 return super.getBean(name, requiredType, args);
             }
@@ -42,7 +50,12 @@ public class SkeletalBeanFactory extends DefaultListableBeanFactory implements B
     
     public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
       throws BeanDefinitionStoreException {
-        super.registerBeanDefinition(beanName, beanDefinition);
+        if (!coreBeans.contains(beanName) || !coreInitialized) {
+            super.registerBeanDefinition(beanName, beanDefinition);
+        }
+        else {
+            log.debug("Rejecting core bean def " + beanName);
+        }
         if (!coreInitialized) {
             coreBeans.add(beanName);
         }

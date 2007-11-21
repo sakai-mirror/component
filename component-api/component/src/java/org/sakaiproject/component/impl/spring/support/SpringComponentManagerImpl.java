@@ -58,9 +58,7 @@ import org.springframework.context.support.GenericApplicationContext;
  */
 public class SpringComponentManagerImpl implements SpringComponentManager,
         ContextProcessor {
-    /** Our log (commons). */
-    private static Log M_log = LogFactory
-            .getLog(SpringComponentManagerImpl.class);
+    private static Log M_log = LogFactory.getLog(SpringComponentManagerImpl.class);
 
     /**
      * System property to control if we close on jvm shutdown (if set) or on the
@@ -113,7 +111,11 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
         try {
             Thread.currentThread().setContextClassLoader(componentsClassLoader);
             initImpl();
-        } finally {
+        }
+        catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+        finally {
             Thread.currentThread().setContextClassLoader(stored);
         }
     }
