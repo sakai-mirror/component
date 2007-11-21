@@ -12,11 +12,39 @@
   <groupId>org.sakaiproject</groupId>
   <artifactId>component-loader-base</artifactId>
   <name>Sakai Loader Project</name>
+  <properties>
+    <maven.tomcat.home></maven.tomcat.home>
+  </properties>
 
   <packaging>pom</packaging>
-  <modules>
-    <module>component-loader-common/impl</module>
-    <module>tomcat5</module>
-    <module>tomcat6</module>
-  </modules>
+  <profiles>
+   <profile>
+    <id>tomcat6</id>
+      <activation>
+        <file>
+          <exists>${maven.tomcat.home}/common/lib/caltalina.jar</exists>
+        </file>
+      </activation>
+    <modules>
+      <module>component-loader-common/impl</module>
+      <module>tomcat6</module>
+    </modules>
+   </profile>
+
+   <profile>
+    <id>tomcat5</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+   <!--
+        <file>
+          <exists>${maven.tomcat.home}/server/lib/catalina.jar</exists>
+        </file>
+   -->
+      </activation>
+    <modules>
+      <module>component-loader-common/impl</module>
+      <module>tomcat5</module>
+    </modules>
+   </profile>
+  </profiles>
 </project>
