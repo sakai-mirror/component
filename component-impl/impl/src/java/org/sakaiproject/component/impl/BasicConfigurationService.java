@@ -24,6 +24,7 @@ package org.sakaiproject.component.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,9 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.component.impl.spring.support.SakaiPropertiesFactory;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.tool.api.SessionManager;
-import org.sakaiproject.util.SakaiProperties;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
 import org.springframework.core.io.Resource;
@@ -46,13 +47,14 @@ import org.w3c.dom.NodeList;
 
 /**
  * <p>
- * BasicConfigurationService is a basic implementation of the ServerConfigurationService.
+ * BasicConfigurationService is a basic implementation of the
+ * ServerConfigurationService.
  * </p>
  */
-public class BasicConfigurationService implements ServerConfigurationService
-{
+public class BasicConfigurationService implements ServerConfigurationService {
 	/** Our log (commons). */
-	private static Log M_log = LogFactory.getLog(BasicConfigurationService.class);
+	private static Log M_log = LogFactory
+			.getLog(BasicConfigurationService.class);
 
 	/** The instance id for this app server. */
 	private String instanceId = null;
@@ -60,7 +62,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/** This is computed, joining the configured serverId and the set instanceId. */
 	private String serverIdInstance = null;
 
-	/** The map of values from the loaded properties - not synchronized at access. */
+	/**
+	 * The map of values from the loaded properties - not synchronized at
+	 * access.
+	 */
 	private Properties properties;
 
 	/** File name within sakai.home for the tool order file. */
@@ -77,18 +82,17 @@ public class BasicConfigurationService implements ServerConfigurationService
 	private Map m_defaultTools = new HashMap();
 
 	/** default tool categories in order mapped by site type */
-	private Map<String, List<String>> m_toolCategoriesList = new HashMap();
+	private Map<String, List<String>> m_toolCategoriesList = new HashMap<String, List<String>>();
 
 	/** default tool categories to tool id maps mapped by site type */
-	private Map<String, Map<String, List<String>>> m_toolCategoriesMap = new HashMap();
+	private Map<String, Map<String, List<String>>> m_toolCategoriesMap = new HashMap<String, Map<String, List<String>>>();
 
 	/** default tool id to tool category maps mapped by site type */
-	private Map<String, Map<String, String>> m_toolToToolCategoriesMap = new HashMap();
+	private Map<String, Map<String, String>> m_toolToToolCategoriesMap = new HashMap<String, Map<String, String>>();
 
-
-	/**********************************************************************************************************************************************************************************************************************************************************
+	/***************************************************************************
 	 * Dependencies
-	 *********************************************************************************************************************************************************************************************************************************************************/
+	 **************************************************************************/
 
 	/**
 	 * @return the ThreadLocalManager collaborator.
@@ -99,73 +103,61 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 * @return the SessionManager collaborator.
 	 */
 	private SessionManager sessionManager;
-	
-	private SakaiProperties sakaiProperties;
 
-	/**********************************************************************************************************************************************************************************************************************************************************
+	private SakaiPropertiesFactory sakaiPropertiesFactory;
+
+	/***************************************************************************
 	 * Configuration
-	 *********************************************************************************************************************************************************************************************************************************************************/
+	 **************************************************************************/
 
 	/**
 	 * Configuration: set the file name for tool order file.
 	 * 
 	 * @param string
-	 *        The file name for tool order file.
+	 *            The file name for tool order file.
 	 */
-	public void setToolOrderFile(String string)
-	{
+	public void setToolOrderFile(String string) {
 		toolOrderFile = string;
 	}
 
-	/**********************************************************************************************************************************************************************************************************************************************************
+	/***************************************************************************
 	 * Init and Destroy
-	 *********************************************************************************************************************************************************************************************************************************************************/
+	 **************************************************************************/
 
 	/**
 	 * Final initialization, once all dependencies are set.
 	 */
-	public void init()
-	{
-		this.properties = sakaiProperties.getProperties();
+	public void init() {
+		this.properties = sakaiPropertiesFactory.getProperties();
 
-		try
-		{
+		try {
 			// set a unique instance id for this server run
-			// Note: to reduce startup dependency, just use the current time, NOT the id service.
+			// Note: to reduce startup dependency, just use the current time,
+			// NOT the id service.
 			instanceId = Long.toString(System.currentTimeMillis());
 
 			serverIdInstance = getServerId() + "-" + instanceId;
-		}
-		catch (Throwable t)
-		{
+		} catch (Throwable t) {
 			M_log.warn("init(): ", t);
 		}
 
 		// load in the tool order, if specified, from the sakai home area
-		if (toolOrderFile != null)
-		{
+		if (toolOrderFile != null) {
 			File f = new File(toolOrderFile);
-			if (f.exists())
-			{
-				try
-				{
+			if (f.exists()) {
+				try {
 					loadToolOrder(new FileInputStream(f));
+				} catch (Throwable t) {
+					M_log.warn("init(): trouble loading tool order from : "
+							+ toolOrderFile, t);
 				}
-				catch (Throwable t)
-				{
-					M_log.warn("init(): trouble loading tool order from : " + toolOrderFile, t);
-				}
-			}
-			else
-			{
+			} else {
 				// start with the distributed defaults from the classpath
-				try
-				{
+				try {
 					loadToolOrder(defaultToolOrderResource.getInputStream());
-				}
-				catch (Throwable t)
-				{
-					M_log.warn("init(): trouble loading tool order from default toolOrder.xml", t);
+				} catch (Throwable t) {
+					M_log.warn("init(): trouble loading tool order from default toolOrder.xml",
+									t);
 				}
 			}
 		}
@@ -176,48 +168,43 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * Final cleanup.
 	 */
-	public void destroy()
-	{
+	public void destroy() {
 		M_log.info("destroy()");
 	}
 
-	/**********************************************************************************************************************************************************************************************************************************************************
+	/***************************************************************************
 	 * ServerConfigurationService implementation
-	 *********************************************************************************************************************************************************************************************************************************************************/
+	 **************************************************************************/
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getServerId()
-	{
+	public String getServerId() {
 		return (String) properties.get("serverId");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getServerInstance()
-	{
+	public String getServerInstance() {
 		return instanceId;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getServerIdInstance()
-	{
+	public String getServerIdInstance() {
 		return serverIdInstance;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getServerUrl()
-	{
-		// try to get the value pre-computed for this request, to better match the request server naming conventions
+	public String getServerUrl() {
+		// try to get the value pre-computed for this request, to better match
+		// the request server naming conventions
 		String rv = (String) threadLocalManager.get(CURRENT_SERVER_URL);
-		if (rv == null)
-		{
+		if (rv == null) {
 			rv = (String) properties.get("serverUrl");
 		}
 
@@ -228,35 +215,31 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getServerName()
-	{
+	public String getServerName() {
 		return (String) properties.get("serverName");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getAccessUrl()
-	{
+	public String getAccessUrl() {
 		return getServerUrl() + (String) properties.get("accessPath");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getAccessPath()
-	{
+	public String getAccessPath() {
 		return (String) properties.get("accessPath");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getHelpUrl(String helpContext)
-	{
-		String rv = getPortalUrl() + (String) properties.get("helpPath") + "/main";
-		if (helpContext != null)
-		{
+	public String getHelpUrl(String helpContext) {
+		String rv = getPortalUrl() + (String) properties.get("helpPath")
+				+ "/main";
+		if (helpContext != null) {
 			rv += "?help=" + helpContext;
 		}
 
@@ -266,11 +249,9 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getPortalUrl()
-	{
+	public String getPortalUrl() {
 		String rv = (String) threadLocalManager.get(CURRENT_PORTAL_PATH);
-		if (rv == null)
-		{
+		if (rv == null) {
 			rv = (String) properties.get("portalPath");
 		}
 
@@ -282,23 +263,21 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getToolUrl()
-	{
+	public String getToolUrl() {
 		return getServerUrl() + (String) properties.get("toolPath");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getUserHomeUrl()
-	{
-		// get the configured URL (the text "#UID#" will be repalced with the current logged in user id
+	public String getUserHomeUrl() {
+		// get the configured URL (the text "#UID#" will be repalced with the
+		// current logged in user id
 		// NOTE: this is relative to the server root
 		String rv = (String) properties.get("userHomeUrl");
 
 		// form a site based portal id if not configured
-		if (rv == null)
-		{
+		if (rv == null) {
 			rv = (String) properties.get("portalPath") + "/site/~#UID#";
 		}
 
@@ -307,8 +286,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		boolean loggedIn = (user != null);
 
 		// if logged in, replace the UID in the pattern
-		if (loggedIn)
-		{
+		if (loggedIn) {
 			rv.replaceAll("#UID#", user);
 		}
 
@@ -321,12 +299,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getGatewaySiteId()
-	{
+	public String getGatewaySiteId() {
 		String rv = (String) properties.get("gatewaySiteId");
 
-		if (rv == null)
-		{
+		if (rv == null) {
 			rv = "~anon";
 		}
 
@@ -336,21 +312,17 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getLoggedOutUrl()
-	{
+	public String getLoggedOutUrl() {
 		String rv = (String) properties.get("loggedOutUrl");
-		if (rv != null)
-		{
+		if (rv != null) {
 			// if not a full URL, add the server to the front
-			if (rv.startsWith("/"))
-			{
+			if (rv.startsWith("/")) {
 				rv = getServerUrl() + rv;
 			}
 		}
 
 		// use the portal URL if there's no logout defined
-		else
-		{
+		else {
 			rv = getPortalUrl();
 		}
 
@@ -360,26 +332,24 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getSakaiHomePath()
-	{
+	public String getSakaiHomePath() {
 		return System.getProperty("sakai.home");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getString(String name)
-	{
+	public String getString(String name) {
 		return getString(name, "");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public String getString(String name, String dflt)
-	{
+	public String getString(String name, String dflt) {
 		String rv = StringUtil.trimToNull((String) properties.get(name));
-		if (rv == null) rv = dflt;
+		if (rv == null)
+			rv = dflt;
 
 		return rv;
 	}
@@ -387,15 +357,12 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public String[] getStrings(String name)
-	{
+	public String[] getStrings(String name) {
 		// get the count
 		int count = getInt(name + ".count", 0);
-		if (count > 0)
-		{
+		if (count > 0) {
 			String[] rv = new String[count];
-			for (int i = 1; i <= count; i++)
-			{
+			for (int i = 1; i <= count; i++) {
 				rv[i - 1] = getString(name + "." + i, "");
 			}
 			return rv;
@@ -407,11 +374,11 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public int getInt(String name, int dflt)
-	{
+	public int getInt(String name, int dflt) {
 		String value = getString(name);
 
-		if (value.length() == 0) return dflt;
+		if (value.length() == 0)
+			return dflt;
 
 		return Integer.parseInt(value);
 	}
@@ -419,11 +386,11 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean getBoolean(String name, boolean dflt)
-	{
+	public boolean getBoolean(String name, boolean dflt) {
 		String value = getString(name);
 
-		if (value.length() == 0) return dflt;
+		if (value.length() == 0)
+			return dflt;
 
 		return Boolean.valueOf(value).booleanValue();
 	}
@@ -431,13 +398,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public List getToolOrder(String category)
-	{
-		if (category != null)
-		{
+	public List getToolOrder(String category) {
+		if (category != null) {
 			List order = (List) m_toolOrders.get(category);
-			if (order != null)
-			{
+			if (order != null) {
 				return order;
 			}
 		}
@@ -448,13 +412,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public List getToolsRequired(String category)
-	{
-		if (category != null)
-		{
+	public List getToolsRequired(String category) {
+		if (category != null) {
 			List order = (List) m_toolsRequired.get(category);
-			if (order != null)
-			{
+			if (order != null) {
 				return order;
 			}
 		}
@@ -465,13 +426,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public List getDefaultTools(String category)
-	{
-		if (category != null)
-		{
+	public List getDefaultTools(String category) {
+		if (category != null) {
 			List order = (List) m_defaultTools.get(category);
-			if (order != null)
-			{
+			if (order != null) {
 				return order;
 			}
 		}
@@ -482,13 +440,10 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<String> getToolCategories(String category)
-	{
-		if (category != null)
-		{
+	public List<String> getToolCategories(String category) {
+		if (category != null) {
 			List<String> categories = m_toolCategoriesList.get(category);
-			if (categories != null)
-			{
+			if (categories != null) {
 				return categories;
 			}
 		}
@@ -499,13 +454,11 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public Map<String, List<String>> getToolCategoriesAsMap(String category)
-	{
-		if (category != null)
-		{
-			Map<String, List<String>> categories = m_toolCategoriesMap.get(category);
-			if (categories != null)
-			{
+	public Map<String, List<String>> getToolCategoriesAsMap(String category) {
+		if (category != null) {
+			Map<String, List<String>> categories = m_toolCategoriesMap
+					.get(category);
+			if (categories != null) {
 				return categories;
 			}
 		}
@@ -516,13 +469,11 @@ public class BasicConfigurationService implements ServerConfigurationService
 	/**
 	 * {@inheritDoc}
 	 */
-	public Map<String, String> getToolToCategoryMap(String category)
-	{
-		if (category != null)
-		{
-			Map<String, String> categories = m_toolToToolCategoriesMap.get(category);
-			if (categories != null)
-			{
+	public Map<String, String> getToolToCategoryMap(String category) {
+		if (category != null) {
+			Map<String, String> categories = m_toolToToolCategoriesMap
+					.get(category);
+			if (categories != null) {
 				return categories;
 			}
 		}
@@ -534,132 +485,128 @@ public class BasicConfigurationService implements ServerConfigurationService
 	 * Load this single file as a registration file, loading tools and locks.
 	 * 
 	 * @param in
-	 *        The Stream to load
+	 *            The Stream to load
 	 */
-	private void loadToolOrder(InputStream in)
-	{
+	private void loadToolOrder(InputStream in) {
 		Document doc = Xml.readDocumentFromStream(in);
 		Element root = doc.getDocumentElement();
-		if (!root.getTagName().equals("toolOrder"))
-		{
-			M_log.info("loadToolOrder: invalid root element (expecting \"toolOrder\"): " + root.getTagName());
+		if (!root.getTagName().equals("toolOrder")) {
+			M_log
+					.info("loadToolOrder: invalid root element (expecting \"toolOrder\"): "
+							+ root.getTagName());
 			return;
 		}
 
 		// read the children nodes
 		NodeList rootNodes = root.getChildNodes();
 		final int rootNodesLength = rootNodes.getLength();
-		for (int i = 0; i < rootNodesLength; i++)
-		{
+		for (int i = 0; i < rootNodesLength; i++) {
 			Node rootNode = rootNodes.item(i);
-			if (rootNode.getNodeType() != Node.ELEMENT_NODE) continue;
+			if (rootNode.getNodeType() != Node.ELEMENT_NODE)
+				continue;
 			Element rootElement = (Element) rootNode;
 
 			// look for "category" elements
-			if (rootElement.getTagName().equals("category"))
-			{
-				String name = StringUtil.trimToNull(rootElement.getAttribute("name"));
-				if (name != null)
-				{
+			if (rootElement.getTagName().equals("category")) {
+				String name = StringUtil.trimToNull(rootElement
+						.getAttribute("name"));
+				if (name != null) {
 					// form a list for this category
 					List order = (List) m_toolOrders.get(name);
-					if (order == null)
-					{
-						order = new Vector();
+					if (order == null) {
+						order = new ArrayList();
 						m_toolOrders.put(name, order);
 
-						List required = new Vector();
+						List required = new ArrayList();
 						m_toolsRequired.put(name, required);
-						List defaultTools = new Vector();
+						List defaultTools = new ArrayList();
 						m_defaultTools.put(name, defaultTools);
 
-                  List<String> toolCategories = new Vector();
-                  m_toolCategoriesList.put(name, toolCategories);
+						List<String> toolCategories = new Vector();
+						m_toolCategoriesList.put(name, toolCategories);
 
-                  Map<String, List<String>> toolCategoryMappings = new HashMap();
-                  m_toolCategoriesMap.put(name, toolCategoryMappings);
-                  
-                  Map<String, String> toolToCategoryMap = new HashMap();
-                  m_toolToToolCategoriesMap.put(name, toolToCategoryMap);
+						Map<String, List<String>> toolCategoryMappings = new HashMap();
+						m_toolCategoriesMap.put(name, toolCategoryMappings);
+
+						Map<String, String> toolToCategoryMap = new HashMap();
+						m_toolToToolCategoriesMap.put(name, toolToCategoryMap);
 
 						// get the kids
 						NodeList nodes = rootElement.getChildNodes();
 						final int nodesLength = nodes.getLength();
-						for (int c = 0; c < nodesLength; c++)
-						{
+						for (int c = 0; c < nodesLength; c++) {
 							Node node = nodes.item(c);
-							if (node.getNodeType() != Node.ELEMENT_NODE) continue;
+							if (node.getNodeType() != Node.ELEMENT_NODE)
+								continue;
 							Element element = (Element) node;
 
-							if (element.getTagName().equals("tool"))
-							{
-                        processTool(element, order, required, defaultTools);
-                     }
-                     else if (element.getTagName().equals("toolCategory")) {
-                        processCategory(element, order, required, defaultTools, 
-                           toolCategories, toolCategoryMappings, toolToCategoryMap);
-                     }
-                  }
+							if (element.getTagName().equals("tool")) {
+								processTool(element, order, required,
+										defaultTools);
+							} else if (element.getTagName().equals(
+									"toolCategory")) {
+								processCategory(element, order, required,
+										defaultTools, toolCategories,
+										toolCategoryMappings, toolToCategoryMap);
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 
-   private void processCategory(Element element, List order, List required,
-                                  List defaultTools, List<String> toolCategories,
-                                  Map<String, List<String>> toolCategoryMappings, 
-                                  Map<String, String> toolToCategoryMap) {
-      String name = element.getAttribute("id");      
-      NodeList nameList = element.getElementsByTagName("name");
-      
-      if (nameList.getLength() > 0) {
-         Element nameElement = (Element) nameList.item(0);
-         name = nameElement.getTextContent();
-      }
-      
-      toolCategories.add(name);
-      List<String> toolCategoryTools = new Vector();
-      toolCategoryMappings.put(name, toolCategoryTools);
-      
-      NodeList nodes = element.getChildNodes();
-      final int nodesLength = nodes.getLength();
-      for (int c = 0; c < nodesLength; c++)
-      {
-         Node node = nodes.item(c);
-         if (node.getNodeType() != Node.ELEMENT_NODE) continue;
-         Element toolElement = (Element) node;
+	private void processCategory(Element element, List order, List required,
+			List defaultTools, List<String> toolCategories,
+			Map<String, List<String>> toolCategoryMappings,
+			Map<String, String> toolToCategoryMap) {
+		String name = element.getAttribute("id");
+		NodeList nameList = element.getElementsByTagName("name");
 
-         if (toolElement.getTagName().equals("tool"))
-         {
-            String id = processTool(toolElement, order, required, defaultTools);
-            toolCategoryTools.add(id);
-            toolToCategoryMap.put(id, name);
-         }
-      }      
-   }
+		if (nameList.getLength() > 0) {
+			Element nameElement = (Element) nameList.item(0);
+			name = nameElement.getTextContent();
+		}
 
-   private String processTool(Element element, List order, List required, List defaultTools) {
-								String id = StringUtil.trimToNull(element.getAttribute("id"));
-								if (id != null)
-								{
-									order.add(id);
-								}
+		toolCategories.add(name);
+		List<String> toolCategoryTools = new Vector();
+		toolCategoryMappings.put(name, toolCategoryTools);
 
-								String req = StringUtil.trimToNull(element.getAttribute("required"));
-								if ((req != null) && (Boolean.TRUE.toString().equalsIgnoreCase(req)))
-								{
-									required.add(id);
-								}
+		NodeList nodes = element.getChildNodes();
+		final int nodesLength = nodes.getLength();
+		for (int c = 0; c < nodesLength; c++) {
+			Node node = nodes.item(c);
+			if (node.getNodeType() != Node.ELEMENT_NODE)
+				continue;
+			Element toolElement = (Element) node;
 
-								String sel = StringUtil.trimToNull(element.getAttribute("selected"));
-								if ((sel != null) && (Boolean.TRUE.toString().equalsIgnoreCase(sel)))
-								{
-									defaultTools.add(id);
-								}
-      return id;
+			if (toolElement.getTagName().equals("tool")) {
+				String id = processTool(toolElement, order, required,
+						defaultTools);
+				toolCategoryTools.add(id);
+				toolToCategoryMap.put(id, name);
+			}
+		}
 	}
 
+	private String processTool(Element element, List order, List required,
+			List defaultTools) {
+		String id = StringUtil.trimToNull(element.getAttribute("id"));
+		if (id != null) {
+			order.add(id);
+		}
+
+		String req = StringUtil.trimToNull(element.getAttribute("required"));
+		if ((req != null) && (Boolean.TRUE.toString().equalsIgnoreCase(req))) {
+			required.add(id);
+		}
+
+		String sel = StringUtil.trimToNull(element.getAttribute("selected"));
+		if ((sel != null) && (Boolean.TRUE.toString().equalsIgnoreCase(sel))) {
+			defaultTools.add(id);
+		}
+		return id;
+	}
 
 	public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
 		this.threadLocalManager = threadLocalManager;
@@ -677,7 +624,7 @@ public class BasicConfigurationService implements ServerConfigurationService
 		return properties;
 	}
 
-	public void setSakaiProperties(SakaiProperties sakaiProperties) {
-		this.sakaiProperties = sakaiProperties;
+	public void setSakaiPropertiesFactory(SakaiPropertiesFactory sakaiPropertiesFactory) {
+		this.sakaiPropertiesFactory = sakaiPropertiesFactory;
 	}
 }

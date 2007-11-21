@@ -6,7 +6,7 @@
 
 	<bean id="org.sakaiproject.component.DefaultSakaiProperties" abstract="true" class="org.sakaiproject.component.impl.spring.support.SakaiPropertiesFactory">
 		<property name="properties">
-			<bean class="org.sakaiproject.component.impl.DynamicDefaultSakaiProperties" init-method="init"/>
+			<bean class="org.sakaiproject.component.impl.spring.support.DynamicDefaultSakaiProperties" init-method="init"/>
 		</property>
 
 		<property name="locations">
@@ -45,6 +45,7 @@
 				<entry key="serverId" value="sakai.serverId"/>
 				<entry key="content.upload.max" value="sakai.content.upload.max"/>
 				<entry key="content.upload.ceiling" value="sakai.content.upload.ceiling"/>
+                <entry key="component.createproxies" value="sakai.component.createproxies"/>
 				<entry key="content.upload.dir" value="sakai.content.upload.dir"/>
 				<entry key="force.url.secure" value="sakai.force.url.secure"/>
 			</map>

@@ -39,6 +39,8 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 public class ComponentManagerCore implements ContextProcessor, BeanLocator {
 
+    public final static String CREATE_PROXIES = "sakai.component.createproxies";
+    
     private static Log log = LogFactory.getLog(ComponentManagerCore.class);
 
     private DefaultListableBeanFactory rootContext;
@@ -48,7 +50,7 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
     private ClassLoader classLoader;
 
     private Map<String, Object> straySingletons = new ConcurrentHashMap<String, Object>();
-
+    
     public void setRootContext(DefaultListableBeanFactory rootContext) {
         this.rootContext = rootContext;
     }
@@ -92,8 +94,7 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
     }
 
     public void registerSingleton(String name, Object bean) {
-        records
-                .registerComponentForBean(name,
+        records.registerComponentForBean(name,
                         ComponentRecords.STRAY_SINGLETON);
         straySingletons.put(name, bean);
     }
@@ -115,6 +116,9 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
 
     public Object createProxy(ObjectFactory getter) {
         BeanRecord concrete = (BeanRecord) getter.getObject();
+        if (System.getProperty(CREATE_PROXIES) == null) {
+            return concrete.bean;
+        }
         ClassVisibilityRecord cvr = ClassLoaderUtil.getVisibilityRecord(
                 concrete.bean.getClass(), classLoader);
 
@@ -152,8 +156,7 @@ public class ComponentManagerCore implements ContextProcessor, BeanLocator {
                 rootContext.registerBeanDefinition(defname, def);
             } else {
                 if (!def.isSingleton()) {
-                    log
-                            .warn("Skipping bean definition "
+                    log.warn("Skipping bean definition "
                                     + defname
                                     + " from context "
                                     + record.componentName

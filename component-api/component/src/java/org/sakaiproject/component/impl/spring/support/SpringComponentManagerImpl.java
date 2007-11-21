@@ -125,6 +125,7 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
         componentManagerCore.setComponentsClassLoader(componentsClassLoader);
         componentManagerCore.setRootContext(rootFactory);
         componentManagerCore.setRecords(records);
+
         rootFactory.setBeanLocator(componentManagerCore);
         rootContext = new GenericApplicationContext(rootFactory);
         loadRootContext();
@@ -154,6 +155,7 @@ public class SpringComponentManagerImpl implements SpringComponentManager,
                     .toArray(new String[configLocationList.size()]));
         }
         rootContext.refresh();
+        rootFactory.setCoreInitialized();
     }
 
     private void acquirePostProcessors() {
