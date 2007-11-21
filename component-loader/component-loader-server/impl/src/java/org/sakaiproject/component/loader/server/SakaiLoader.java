@@ -1,11 +1,5 @@
 package org.sakaiproject.component.loader.server;
 
-import java.lang.management.ManagementFactory;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.Notification;
-import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.apache.catalina.Engine;
