@@ -1,4 +1,4 @@
-package org.sakaiproject.component.loader.server;
+package org.sakaiproject.component.loader.tomcat6.server;
 
 import javax.management.ObjectName;
 

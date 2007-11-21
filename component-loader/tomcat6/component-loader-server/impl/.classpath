@@ -2,12 +2,13 @@
   <classpathentry kind="src" path="src/java"/>
   <classpathentry kind="output" path="target/classes"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-  <classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/tomcat/naming-resources/tomcat-5.5.23/naming-resources-tomcat-5.5.23.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/tomcat-temp/naming-factory/5.5.16/naming-factory-5.5.16.jar"/>
-  <classpathentry kind="var" path="M2_REPO/tomcat/catalina/tomcat-5.5.23/catalina-tomcat-5.5.23.jar"/>
-  <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/annotations-api/6.0.14/annotations-api-6.0.14.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-modeler/commons-modeler/tomcat-5.5.16/commons-modeler-tomcat-5.5.16.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/catalina/6.0.14/catalina-6.0.14.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/servlet-api/6.0.14/servlet-api-6.0.14.jar"/>
+  <classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/juli/6.0.14/juli-6.0.14.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar"/>
   <classpathentry kind="src" path="/sakai-component-loader-common"/>
 </classpath>

@@ -23,11 +23,5 @@
       <artifactId>commons-logging</artifactId>
       <type>jar</type>
     </dependency>
-    <dependency>
-      <groupId>tomcat</groupId>
-      <artifactId>catalina</artifactId>
-      <version>${sakai.tomcat.version}</version>
-      <type>jar</type>
-    </dependency>
   </dependencies>
 </project>

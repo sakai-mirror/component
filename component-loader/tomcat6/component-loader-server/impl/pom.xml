@@ -15,7 +15,7 @@
   <artifactId>sakai-component-loader-tc6-server</artifactId>
   <packaging>jar</packaging>
   <properties>
-    <deploy.target>server</deploy.target>
+    <deploy.target>common</deploy.target>
   </properties>
   <dependencies>
     <dependency>
@@ -31,27 +31,15 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>tomcat</groupId>
+      <groupId>org.apache.tomcat</groupId>
       <artifactId>catalina</artifactId>
-      <version>${sakai.tomcat.version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>tomcat-temp</groupId>
-      <artifactId>naming-factory</artifactId>
-      <version>5.5.16</version>
+      <version>6.0.14</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>commons-modeler</groupId>
       <artifactId>commons-modeler</artifactId>
       <version>tomcat-5.5.16</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>tomcat</groupId>
-      <artifactId>naming-resources</artifactId>
-      <version>${sakai.tomcat.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
