@@ -94,7 +94,7 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 	}
 	
 	public static void initializeSakaiHome() {
-		URL propertiesUrl = ConfigurationLoadingTest.class.getClassLoader().getResource("sakai.properties");
+		URL propertiesUrl = ConfigurationLoadingTest.class.getClassLoader().getResource("filesystem/sakai.properties");
 		if (log.isDebugEnabled()) log.debug("propertiesUrl=" + propertiesUrl);
 		if (propertiesUrl != null) {
 			String propertiesFileName = propertiesUrl.getFile();
