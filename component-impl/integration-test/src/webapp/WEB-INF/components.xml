@@ -42,5 +42,18 @@
 	<bean id="org.sakaiproject.component.test.ITestProvider" class="org.sakaiproject.component.test.TestProvider1"/>
 	
 	<bean id="org.sakaiproject.component.test.TestProvider2" class="org.sakaiproject.component.test.TestProvider2"/>
+	
+	<bean id="org.sakaiproject.component.test.dynamic.DbProperties" class="org.sakaiproject.component.test.dynamic.DbPropertiesDao"
+		init-method="init">
+		<property name="autoDdl" value="true"/>
+		<property name="dataSource" ref="org.sakaiproject.component.test.dynamic.propertiesDataSource"/>
+		<property name="initialDbProperties">
+			<map>
+				<entry key="dynamicKey1" value="initialDynamicValue1"/>
+				<entry key="dynamicKey2" value="initialDynamicValue2"/>
+				<entry key="overrideString1@org.sakaiproject.component.test.ITestComponent" value="dynamic"/>
+			</map>
+		</property>
+	</bean> 
 
 </beans>

@@ -46,7 +46,6 @@ import org.springframework.core.io.Resource;
  * 
  * SakaiProperties configuration supports most of the properties documented for 
  * PropertiesFactoryBean, PropertyPlaceholderConfigurer, and PropertyOverrideConfigurer.
- *  
  */
 public class SakaiProperties implements BeanFactoryPostProcessorCreator, InitializingBean {
 	private static Log log = LogFactory.getLog(SakaiProperties.class);
