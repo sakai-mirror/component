@@ -3,7 +3,6 @@
   <classpathentry kind="output" path="target/classes"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/annotations-api/6.0.14/annotations-api-6.0.14.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-modeler/commons-modeler/tomcat-5.5.16/commons-modeler-tomcat-5.5.16.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/catalina/6.0.14/catalina-6.0.14.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/tomcat/servlet-api/6.0.14/servlet-api-6.0.14.jar"/>

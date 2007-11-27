@@ -4,7 +4,6 @@
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
   <classpathentry kind="src" path="/sakai-component-loader-common"/>
-  <classpathentry kind="var" path="M2_REPO/commons-modeler/commons-modeler/tomcat-5.5.16/commons-modeler-tomcat-5.5.16.jar"/>
   <classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/tomcat/naming-resources/tomcat-5.5.23/naming-resources-tomcat-5.5.23.jar"/>
   <classpathentry kind="var" path="M2_REPO/tomcat/catalina/tomcat-5.5.23/catalina-tomcat-5.5.23.jar"/>

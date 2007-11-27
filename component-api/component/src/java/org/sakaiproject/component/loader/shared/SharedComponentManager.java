@@ -33,9 +33,8 @@ import org.sakaiproject.component.loader.common.CommonLifecycleListener;
  * @author ieb
  */
 public class SharedComponentManager implements CommonLifecycle
-{ 
+{
 
-	
 	/**
 	 * @throws MBeanException
 	 * @throws RuntimeOperationsException
@@ -67,37 +66,93 @@ public class SharedComponentManager implements CommonLifecycle
 			cm = new SpringCompMgr(null);
 
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-			
+
 			RequiredModelMBean model = new RequiredModelMBean(createMBeanInfo());
 			model.setManagedResource(this, "objectReference");
 			ObjectName componentManager = new ObjectName(
 					ComponentManager.MBEAN_COMPONENT_MANAGER);
 			mbs.registerMBean(model, componentManager);
-			
-			
 
 			cm.init();
-			
-			System.runFinalization();
-			Runtime.getRuntime().gc();
-			
-			CompositeData permGen = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Perm Gen"), "Usage");
-			CompositeData tenuredGen = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Tenured Gen"), "Usage");
-			CompositeData codeCache = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Code Cache"), "Usage");
-			CompositeData edenSpace = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Eden Space"), "Usage");
-			CompositeData survivorSpace = (CompositeData) mbs.getAttribute(new ObjectName("java.lang:type=MemoryPool,name=Survivor Space"), "Usage");
-			long permGenUsed = Long.parseLong(String.valueOf(permGen.get("used")));
-			long codeCacheUsed = Long.parseLong(String.valueOf(codeCache.get("used")));
-			long edenSpaceUsed = Long.parseLong(String.valueOf(edenSpace.get("used")));
-			long tenuredGenUsed = Long.parseLong(String.valueOf(tenuredGen.get("used")));
-			long survivorSpaceUsed = Long.parseLong(String.valueOf(survivorSpace.get("used")));
-			
-			log.info("           Permgen Used "+permGenUsed/(1024*1024)+" MB");
-			log.info("           Code Cache Used "+codeCacheUsed/(1024*1024)+" MB");
-			log.info("           Eden Used "+edenSpaceUsed/(1024*1024)+" MB");
-			log.info("           Tenured Used "+tenuredGenUsed/(1024*1024)+" MB");
-			log.info("           Survivour Used "+survivorSpaceUsed/(1024*1024)+" MB");
-			
+			try
+			{
+				System.runFinalization();
+				Runtime.getRuntime().gc();
+				CompositeData permGen = null;
+				try
+				{
+					permGen = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=Perm Gen"), "Usage");
+				}
+				catch (Exception ex)
+				{
+					permGen = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=CMS Perm Gen"), "Usage");
+				}
+				CompositeData tenuredGen;
+				try
+				{
+					tenuredGen = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=Tenured Gen"), "Usage");
+				}
+				catch (Exception ex)
+				{
+					tenuredGen = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=CMS Old Gen"), "Usage");
+				}
+				CompositeData codeCache = (CompositeData) mbs.getAttribute(
+						new ObjectName("java.lang:type=MemoryPool,name=Code Cache"),
+						"Usage");
+				CompositeData edenSpace = null;
+				try
+				{
+					edenSpace = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=Eden Space"), "Usage");
+				}
+				catch (Exception ex)
+				{
+					edenSpace = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=Par Eden Space"), "Usage");
+
+				}
+				CompositeData survivorSpace = null;
+				try
+				{
+					survivorSpace = (CompositeData) mbs.getAttribute(new ObjectName(
+							"java.lang:type=MemoryPool,name=Survivor Space"), "Usage");
+				}
+				catch (Exception ex)
+				{
+					survivorSpace = (CompositeData) mbs
+							.getAttribute(new ObjectName(
+									"java.lang:type=MemoryPool,name=Par Survivor Space"),
+									"Usage");
+				}
+				long permGenUsed = Long.parseLong(String.valueOf(permGen.get("used")));
+				long codeCacheUsed = Long
+						.parseLong(String.valueOf(codeCache.get("used")));
+				long edenSpaceUsed = Long
+						.parseLong(String.valueOf(edenSpace.get("used")));
+				long tenuredGenUsed = Long.parseLong(String.valueOf(tenuredGen
+						.get("used")));
+				long survivorSpaceUsed = Long.parseLong(String.valueOf(survivorSpace
+						.get("used")));
+
+				log
+						.info("           Permgen Used " + permGenUsed / (1024 * 1024)
+								+ " MB");
+				log.info("           Code Cache Used " + codeCacheUsed / (1024 * 1024)
+						+ " MB");
+				log.info("           Eden Used " + edenSpaceUsed / (1024 * 1024) + " MB");
+				log.info("           Tenured Used " + tenuredGenUsed / (1024 * 1024)
+						+ " MB");
+				log.info("           Survivour Used " + survivorSpaceUsed / (1024 * 1024)
+						+ " MB");
+			}
+			catch (Exception ex2)
+			{
+				log.info("Startup Memory Stats Not available");
+			}
 			lifecycleEvent(CommonLifecycleEvent.START);
 			lifecycleEvent(CommonLifecycleEvent.AFTER_START);
 			loadTime = System.currentTimeMillis() - start;
@@ -119,85 +174,65 @@ public class SharedComponentManager implements CommonLifecycle
 	private ModelMBeanInfo createMBeanInfo()
 	{
 		Descriptor lastLoadDate = new DescriptorSupport(new String[] {
-	                 "name=LastLoadDate",
-	                 "descriptorType=attribute",
-	                 "default=0",
-	                 "displayName=Last Load Date",
-	                 "getMethod=getLastLoadDate"
-	                }
-	                );
+				"name=LastLoadDate", "descriptorType=attribute", "default=0",
+				"displayName=Last Load Date", "getMethod=getLastLoadDate" });
 		Descriptor lastLoadTime = new DescriptorSupport(new String[] {
-                "name=LastLoadTime",
-                "descriptorType=attribute",
-                "default=0",
-                "displayName=Last Load Time",
-                "getMethod=getLoadTime"
-               }
-               );
+				"name=LastLoadTime", "descriptorType=attribute", "default=0",
+				"displayName=Last Load Time", "getMethod=getLoadTime" });
 
-	    ModelMBeanAttributeInfo [] mmbai = new ModelMBeanAttributeInfo[2];
-	    mmbai[0] = new ModelMBeanAttributeInfo("LastLoadDate","java.util.Date",
-	      "Last Load Date",  true,false, false, lastLoadDate);
-	    
-	    mmbai[1] = new ModelMBeanAttributeInfo("LastLoadTime","java.lang.Long",
-	  	      "Last Load Time",  true,false, false, lastLoadTime);
+		ModelMBeanAttributeInfo[] mmbai = new ModelMBeanAttributeInfo[2];
+		mmbai[0] = new ModelMBeanAttributeInfo("LastLoadDate", "java.util.Date",
+				"Last Load Date", true, false, false, lastLoadDate);
 
-	    ModelMBeanOperationInfo [] mmboi = new ModelMBeanOperationInfo[7];
+		mmbai[1] = new ModelMBeanAttributeInfo("LastLoadTime", "java.lang.Long",
+				"Last Load Time", true, false, false, lastLoadTime);
 
-	    mmboi[0] = new ModelMBeanOperationInfo("start", 
-	    "Start the Component Manager", null, "void", ModelMBeanOperationInfo.ACTION
-	    );
-	    mmboi[1] = new ModelMBeanOperationInfo("stop", 
-	    	    "Stop the Component Manager", null, "void", ModelMBeanOperationInfo.ACTION
-	    	    );
-	    mmboi[2] = new ModelMBeanOperationInfo("getComponentManager", 
-	    	    "Get the Current Component Manager", null, ComponentManager.class.getName(), ModelMBeanOperationInfo.INFO
-	    	    );
-	    
-	    mmboi[3] = new ModelMBeanOperationInfo("addComponentManagerLifecycleListener", 
-	    	    "Add a listener to the component lifecycle", 
-	    	    new MBeanParameterInfo[] {new MBeanParameterInfo("Lifecycle Listener",CommonLifecycleListener.class.getName(),"The Lifecycle Listener to be added") }, 
-	    	    "void", ModelMBeanOperationInfo.ACTION
-	    	    );
-	    mmboi[4] = new ModelMBeanOperationInfo("removeComponentManagerLifecycleListener", 
-	    	    "Remove a listener to the component lifecycle", 
-	    	    new MBeanParameterInfo[] {new MBeanParameterInfo("Lifecycle Listener",CommonLifecycleListener.class.getName(),"The Lifecycle Listener to be removed") }, 
-	    	    "void", ModelMBeanOperationInfo.ACTION
-	    	    );
-	    mmboi[5] = new ModelMBeanOperationInfo("getLastLoadDate", 
-	    	    "The date the component manager was last loaded", 
-	    	    null, 
-	    	    "java.util.Date", ModelMBeanOperationInfo.INFO
-	    	    );
-	    mmboi[6] = new ModelMBeanOperationInfo("getLoadTime", 
-	    	    "The time it took to load the component manager", 
-	    	    null, 
-	    	    "long", ModelMBeanOperationInfo.INFO
-	    	    );
-	    
+		ModelMBeanOperationInfo[] mmboi = new ModelMBeanOperationInfo[7];
 
-	    /*
-	    mmboi[1] = new ModelMBeanOperationInfo("decPanelValue", 
-	    "decrement the meter value", null, "void", ModelMBeanOperationInfo.ACTION
-	    );
+		mmboi[0] = new ModelMBeanOperationInfo("start", "Start the Component Manager",
+				null, "void", ModelMBeanOperationInfo.ACTION);
+		mmboi[1] = new ModelMBeanOperationInfo("stop", "Stop the Component Manager",
+				null, "void", ModelMBeanOperationInfo.ACTION);
+		mmboi[2] = new ModelMBeanOperationInfo("getComponentManager",
+				"Get the Current Component Manager", null, ComponentManager.class
+						.getName(), ModelMBeanOperationInfo.INFO);
 
-	    mmboi[2] = new ModelMBeanOperationInfo("getPanelValue", 
-	    "getter for PanelValue", null,"Integer", ModelMBeanOperationInfo.INFO);
+		mmboi[3] = new ModelMBeanOperationInfo("addComponentManagerLifecycleListener",
+				"Add a listener to the component lifecycle",
+				new MBeanParameterInfo[] { new MBeanParameterInfo("Lifecycle Listener",
+						CommonLifecycleListener.class.getName(),
+						"The Lifecycle Listener to be added") }, "void",
+				ModelMBeanOperationInfo.ACTION);
+		mmboi[4] = new ModelMBeanOperationInfo("removeComponentManagerLifecycleListener",
+				"Remove a listener to the component lifecycle",
+				new MBeanParameterInfo[] { new MBeanParameterInfo("Lifecycle Listener",
+						CommonLifecycleListener.class.getName(),
+						"The Lifecycle Listener to be removed") }, "void",
+				ModelMBeanOperationInfo.ACTION);
+		mmboi[5] = new ModelMBeanOperationInfo("getLastLoadDate",
+				"The date the component manager was last loaded", null, "java.util.Date",
+				ModelMBeanOperationInfo.INFO);
+		mmboi[6] = new ModelMBeanOperationInfo("getLoadTime",
+				"The time it took to load the component manager", null, "long",
+				ModelMBeanOperationInfo.INFO);
 
-	    MBeanParameterInfo [] mbpi = new MBeanParameterInfo[1];
-	    mbpi[0] =  new MBeanParameterInfo("inVal", "java.lang.Integer", 
-	      "value to set");
-	    mmboi[3] = new ModelMBeanOperationInfo("setPanelValue",
-	      "setter for PanelValue", mbpi, "void", ModelMBeanOperationInfo.ACTION);
+		/*
+		 * mmboi[1] = new ModelMBeanOperationInfo("decPanelValue", "decrement
+		 * the meter value", null, "void", ModelMBeanOperationInfo.ACTION );
+		 * mmboi[2] = new ModelMBeanOperationInfo("getPanelValue", "getter for
+		 * PanelValue", null,"Integer", ModelMBeanOperationInfo.INFO);
+		 * MBeanParameterInfo [] mbpi = new MBeanParameterInfo[1]; mbpi[0] = new
+		 * MBeanParameterInfo("inVal", "java.lang.Integer", "value to set");
+		 * mmboi[3] = new ModelMBeanOperationInfo("setPanelValue", "setter for
+		 * PanelValue", mbpi, "void", ModelMBeanOperationInfo.ACTION);
+		 * ModelMBeanConstructorInfo [] mmbci = new
+		 * ModelMBeanConstructorInfo[1]; mmbci[0] = new
+		 * ModelMBeanConstructorInfo("ClickMeterMod", "constructor for Model
+		 * Bean Sample", null);
+		 */
 
-
-	    ModelMBeanConstructorInfo [] mmbci = new ModelMBeanConstructorInfo[1];
-	    mmbci[0] = new ModelMBeanConstructorInfo("ClickMeterMod", 
-	    "constructor for Model Bean Sample", null);
-		*/
-	    
-	    return new ModelMBeanInfoSupport(this.getClass().getName(),
-	    "Sakai Component Manager", mmbai, null, mmboi, null);
+		return new ModelMBeanInfoSupport(this.getClass().getName(),
+				"Sakai Component Manager", mmbai, null, mmboi, null);
 	}
 
 	public void stop()
@@ -241,13 +276,16 @@ public class SharedComponentManager implements CommonLifecycle
 	{
 		return cm;
 	}
-	
+
 	/**
-	 * Fire the lifecycle events 
+	 * Fire the lifecycle events
+	 * 
 	 * @param event
 	 */
-	protected void lifecycleEvent(CommonLifecycleEvent event) {
-		for ( CommonLifecycleListener l : listeners) {
+	protected void lifecycleEvent(CommonLifecycleEvent event)
+	{
+		for (CommonLifecycleListener l : listeners)
+		{
 			l.lifecycleEvent(event);
 		}
 	}
@@ -275,11 +313,13 @@ public class SharedComponentManager implements CommonLifecycle
 		listeners.remove(listener);
 	}
 
-	public Date getLastLoadDate() {
+	public Date getLastLoadDate()
+	{
 		return lastLoadDate;
 	}
-	
-	public long getLoadTime() {
+
+	public long getLoadTime()
+	{
 		return loadTime;
 	}
 

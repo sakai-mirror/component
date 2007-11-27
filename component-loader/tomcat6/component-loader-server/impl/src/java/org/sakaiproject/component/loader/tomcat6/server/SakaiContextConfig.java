@@ -32,6 +32,17 @@ import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.startup.ContextConfig;
 
 /**
+ * This class needs to be attached to the Host container inside tomcat, so that
+ * it can control the lifecycle of the webapps
+ * <pre>
+ *  <Host name="localhost" appBase="webapps"
+ *      unpackWARs="true" autoDeploy="true"
+ *      xmlValidation="false" xmlNamespaceAware="false"
+ *      configClass="org.sakaiproject.component.loader.tomcat6.server.SakaiContextConfig"
+ *      >
+ *
+ *
+ * </pre>
  * @author ieb
  */
 public class SakaiContextConfig extends ContextConfig

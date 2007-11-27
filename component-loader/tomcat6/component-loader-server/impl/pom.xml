@@ -37,12 +37,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>commons-modeler</groupId>
-      <artifactId>commons-modeler</artifactId>
-      <version>tomcat-5.5.16</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <type>jar</type>
