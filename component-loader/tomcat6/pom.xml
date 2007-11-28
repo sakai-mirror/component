@@ -16,5 +16,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>component-loader-server/impl</module>
+    <module>server-config</module>
   </modules>
 </project>
