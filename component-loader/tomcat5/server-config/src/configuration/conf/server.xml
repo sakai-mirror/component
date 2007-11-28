@@ -15,10 +15,8 @@
 
     <!-- Define a non-SSL HTTP/1.1 Connector on port ${tomcat.ports.http} -->
   <Connector port="${tomcat.ports.http}" protocol="HTTP/1.1"
-     <!-- future  shared sessions          emptySessionPath="true" -->
                enableLookups="false"
-               maxPostSize="0" <!-- disable max post size -->
-               connectionTimeout="20000"
+               maxPostSize="0" 
                redirectPort="${tomcat.ports.http.redirect}"
                URIEncoding="UTF-8"
                xpoweredBy="Sakai ${sakai.version} "
@@ -35,9 +33,8 @@
 
     <!-- Define an AJP 1.3 Connector on port ${tomcat.ports.ajp} -->
     <Connector port="${tomcat.ports.ajp}" protocol="AJP/1.3"
- <!-- future  shared sessions          emptySessionPath="true" -->
                enableLookups="false"
-               maxPostSize="0" <!-- disable max post size -->
+               maxPostSize="0" 
                connectionTimeout="20000"
                redirectPort="${tomcat.ports.http.redirect}"
                URIEncoding="UTF-8"
