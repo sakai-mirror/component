@@ -14,6 +14,13 @@
   <groupId>org.sakaiproject</groupId>
   <artifactId>sakai-server-tc6-config</artifactId>
   <packaging>sakai-configuration</packaging>
+  <properties>
+      <tomcat.ports.shutdown>8005</tomcat.ports.shutdown>
+      <tomcat.ports.http>8080</tomcat.ports.http>
+      <tomcat.ports.http.redirect>8443</tomcat.ports.http.redirect>
+      <tomcat.ports.ajp>8009</tomcat.ports.ajp>
+  </properties>
+
   <build>
      <resources>
       <resource>
@@ -21,7 +28,7 @@
         <includes>
           <include>**/*.*</include>
         </includes>
-        <filtering>false</filtering>
+        <filtering>true</filtering>
       </resource>
     </resources>
     <plugins>
