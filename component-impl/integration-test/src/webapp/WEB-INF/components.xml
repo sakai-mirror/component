@@ -44,6 +44,8 @@
 	
 	<bean id="org.sakaiproject.component.test.TestProvider2" class="org.sakaiproject.component.test.TestProvider2"/>
 	
+	<alias name="org.sakaiproject.component.test.ITestComponent" alias="testAliasRetention"/>
+	
 	<bean id="org.sakaiproject.component.test.dynamic.DbProperties" class="org.sakaiproject.component.test.dynamic.DbPropertiesDao"
 		init-method="init">
 		<property name="autoDdl" value="true"/>

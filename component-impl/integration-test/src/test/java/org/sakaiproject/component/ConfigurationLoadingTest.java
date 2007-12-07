@@ -91,6 +91,11 @@ public class ConfigurationLoadingTest extends SakaiTestBase {
 		// Test for promotion of certain Sakai properties to system properties.
 		String uploadMax = System.getProperty("sakai.content.upload.max");
 		Assert.assertTrue(uploadMax.equals("5"));
+		
+		// Test that an untouched component-defined alias came through.
+		// <alias name="org.sakaiproject.component.test.ITestComponent" alias="testAliasRetention"/>
+		Object aliasedObject = getService("testAliasRetention");
+		Assert.assertTrue(aliasedObject instanceof ITestComponent);
 	}
 	
 	public static void initializeSakaiHome() {
