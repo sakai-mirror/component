@@ -23,6 +23,8 @@ package org.sakaiproject.util;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -34,10 +36,10 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.api.ComponentManager;
-import org.sakaiproject.component.impl.SpringCompMgr;
+import org.sakaiproject.util.ComponentApplicationContext.ComponentContexts;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -52,8 +54,14 @@ public class ComponentsLoader
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
 	
+	private List<ComponentApplicationContext> componentApplicationContexts;
+	
 	public ComponentsLoader()
 	{
+		if (ComponentApplicationContext.getComponentContextsOption() != ComponentContexts.NONE)
+		{
+			componentApplicationContexts = new ArrayList<ComponentApplicationContext>();
+		}
 	}
 
 	/**
@@ -88,12 +96,12 @@ public class ComponentsLoader
 			final int reverse = System.getProperty("sakai.components.reverse.load") != null ? -1 : 1;
 
 			// assure a consistent order - sort these files
-			Collections.sort(packages, new Comparator()
+			Collections.sort(packages, new Comparator<File>()
 			{
-				public int compare(Object o1, Object o2)
+				public int compare(File o1, File o2)
 				{
-					File f1 = (File) o1;
-					File f2 = (File) o2;
+					File f1 = o1;
+					File f2 = o2;
 					int sort = f1.compareTo(f2);
 					return sort * reverse;
 				}
@@ -117,7 +125,7 @@ public class ComponentsLoader
 		}
 		catch (Throwable t)
 		{
-			M_log.warn("load: exception: " + t);
+			M_log.warn("load: exception: " + t, t);
 		}
 	}
 
@@ -126,68 +134,99 @@ public class ComponentsLoader
 	 * 
 	 * @param packageRoot
 	 *        The file path to the component package
-	 * @param ac
+	 * @param containerApplicationContext
 	 *        The ApplicationContext to load into
 	 */
-	protected void loadComponentPackage(File dir, ConfigurableApplicationContext ac)
+	protected void loadComponentPackage(File dir, ConfigurableApplicationContext containerApplicationContext)
 	{
 		// setup the classloader onto the thread
-		ClassLoader current = Thread.currentThread().getContextClassLoader();
-		ClassLoader loader = newPackageClassLoader(dir);
+		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		ClassLoader componentClassLoader = getComponentClassLoader(dir, containerApplicationContext);
 
 		M_log.info("loadComponentPackage: " + dir);
-
-		Thread.currentThread().setContextClassLoader(loader);
-
-		File xml = null;
-
-		try
+		
+		if (ComponentApplicationContext.getComponentContextsOption() == ComponentContexts.NONE)
 		{
-			// load this xml file
-			File webinf = new File(dir, "WEB-INF");
-			xml = new File(webinf, "components.xml");
+			Thread.currentThread().setContextClassLoader(componentClassLoader);
 
 			// make a reader
-			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) ac.getBeanFactory());
-			
+			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) containerApplicationContext.getBeanFactory());
+
 			// In Spring 2, classes aren't loaded during bean parsing unless this
 			// classloader property is set.
-			reader.setBeanClassLoader(loader);
-			
-			List<Resource> beanDefList = new ArrayList<Resource>();
-			beanDefList.add(new FileSystemResource(xml.getCanonicalPath()));
-			
-			// Load the demo components, if necessary
-			File demoXml = new File(webinf, "components-demo.xml");
-			if("true".equalsIgnoreCase(System.getProperty("sakai.demo")))
+			reader.setBeanClassLoader(componentClassLoader);
+
+			try
 			{
-				if(M_log.isDebugEnabled()) M_log.debug("Attempting to load demo components");
-				if(demoXml.exists())
-				{
-					if(M_log.isInfoEnabled()) M_log.info("Loading demo components from " + dir);
-					beanDefList.add(new FileSystemResource(demoXml.getCanonicalPath()));
-				}
+				reader.loadBeanDefinitions(getDefaultConfigResources(dir));
 			}
-			else
+			catch (Throwable t)
 			{
-				if(demoXml.exists())
-				{
-					// Only log that we're skipping the demo components if they exist
-					if(M_log.isInfoEnabled()) M_log.info("Skipping demo components from " + dir);
-				}
+				M_log.warn("Exception loading component package at " + dir, t);
 			}
-						
-			reader.loadBeanDefinitions(beanDefList.toArray(new Resource[0]));
-		}
-		catch (Throwable t)
+			finally
+			{
+				// restore the context loader
+				Thread.currentThread().setContextClassLoader(currentClassLoader);
+			}
+		} 
+		else if (ComponentApplicationContext.getComponentContextsOption() == ComponentContexts.ALL)
 		{
-			M_log.warn("loadComponentPackage: exception loading: " + xml + " : " + t,t);
+			ComponentApplicationContext componentApplicationContext = new ComponentApplicationContext(containerApplicationContext, componentClassLoader, getDefaultConfigResources(dir));
+			componentApplicationContext.refreshBeanDefinitions();
+			componentApplicationContexts.add(componentApplicationContext);
 		}
-		finally
+	}
+	
+	/**
+	 */
+	public void refreshAllComponentApplicationContexts()
+	{
+		if (ComponentApplicationContext.getComponentContextsOption() != ComponentContexts.NONE)
 		{
-			// restore the context loader
-			Thread.currentThread().setContextClassLoader(current);
+			for (ComponentApplicationContext componentApplicationContext : componentApplicationContexts)
+			{
+				// Note that this may have already been triggered by cross-component
+				// dependencies.
+				componentApplicationContext.refreshPostProcessors();
+			}
+			for (ComponentApplicationContext componentApplicationContext : componentApplicationContexts)
+			{
+				componentApplicationContext.refreshSingletons();
+			}
 		}
+	}
+	
+	private Resource[] getDefaultConfigResources(File directory)
+	{
+		List<Resource> configResources = new ArrayList<Resource>();
+		File webinf = new File(directory, "WEB-INF");
+		File defaultConfigFile = new File(webinf, "components.xml");
+		if (defaultConfigFile.exists())
+		{
+			try 
+			{
+				configResources.add(new FileSystemResource(defaultConfigFile.getCanonicalPath()));
+			} catch (IOException e) 
+			{
+				M_log.error(e);
+			}
+		}
+		if ("true".equalsIgnoreCase(System.getProperty("sakai.demo"))) 
+		{
+			File demoConfigFile = new File(webinf, "components-demo.xml");
+			if (demoConfigFile.exists())
+			{
+				try 
+				{
+					configResources.add(new FileSystemResource(demoConfigFile.getCanonicalPath()));
+				} catch (IOException e) {
+					M_log.error(e);
+				}
+			}			
+		}
+		Resource[] resourceArray = configResources.toArray(new Resource[0]);
+		return resourceArray;
 	}
 
 	/**
@@ -223,10 +262,10 @@ public class ComponentsLoader
 	 *        The package's root directory.
 	 * @return A class loader, whose parent is this class's loader, which has the classes/ and jars for this component.
 	 */
-	protected ClassLoader newPackageClassLoader(File dir)
+	protected ClassLoader getComponentClassLoader(File dir, ApplicationContext containerApplicationContext)
 	{
 		// collect as a List, turn into an array after
-		List urls = new Vector();
+		List<URL> urls = new Vector<URL>();
 
 		File webinf = new File(dir, "WEB-INF");
 
@@ -239,8 +278,13 @@ public class ComponentsLoader
 				URL url = new URL("file:" + classes.getCanonicalPath() + "/");
 				urls.add(url);
 			}
-			catch (Throwable t)
+			catch (MalformedURLException e)
 			{
+				if (M_log.isWarnEnabled()) M_log.warn(e);
+			}
+			catch (IOException e)
+			{
+				if (M_log.isWarnEnabled()) M_log.warn(e);
 			}
 		}
 
@@ -265,8 +309,13 @@ public class ComponentsLoader
 						URL url = new URL("file:" + jars[j].getCanonicalPath());
 						urls.add(url);
 					}
-					catch (Throwable t)
+					catch (MalformedURLException e)
 					{
+						if (M_log.isWarnEnabled()) M_log.warn(e);
+					}
+					catch (IOException e)
+					{
+						if (M_log.isWarnEnabled()) M_log.warn(e);
 					}
 				}
 			}
@@ -276,7 +325,7 @@ public class ComponentsLoader
 		URL[] urlArray = (URL[]) urls.toArray(new URL[urls.size()]);
 
 		// make the classloader - my loader is parent
-		URLClassLoader loader = new URLClassLoader(urlArray, getClass().getClassLoader());
+		URLClassLoader loader = new URLClassLoader(urlArray, containerApplicationContext.getClassLoader());
 
 		return loader;
 	}

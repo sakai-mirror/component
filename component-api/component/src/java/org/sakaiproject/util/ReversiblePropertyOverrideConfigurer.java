@@ -22,9 +22,16 @@
 
 package org.sakaiproject.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyValue;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyOverrideConfigurer;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 
 /**
  * This is just a version of Spring's PropertyOverrideConfigurer that lets the
@@ -32,6 +39,7 @@ import org.springframework.beans.factory.config.PropertyOverrideConfigurer;
  * (For example "myBean@the.property" instead of "the.property@myBean".)
  */
 public class ReversiblePropertyOverrideConfigurer extends PropertyOverrideConfigurer {
+	private static Log log = LogFactory.getLog(ReversiblePropertyOverrideConfigurer.class);
 	private boolean beanNameAtEnd = true;
 	private String beanNameSeparator;	// Private in the superclass, so we need to stash our own copy.
 
@@ -46,6 +54,47 @@ public class ReversiblePropertyOverrideConfigurer extends PropertyOverrideConfig
 			}
 			super.processKey(factory, key, value);
 		}
+	}
+
+	/**
+	 * A legal PropertyOverrideConfigurer property must be
+	 * specified differently for proxies than for target objects.
+	 *
+	 *   object.testMode@org.sakaiproject.email.api.EmailService=true
+	 *
+	 * not
+	 *
+	 *   testMode@org.sakaiproject.email.api.EmailService=true
+	 *
+	 * To support the proof-of-concept everything-proxied
+	 * duplicate-objects-for-every-service-ID approach,
+	 * avoid setting properties against component-created proxies and instead count on
+	 * component contexts to apply SakaiProperties overriders locally.
+	 *
+	 * When we implement explicitly declared service proxies, we
+	 * can decide which bean to target on a case by case basis,
+	 * eliminating this override.
+	 */
+	@Override
+	protected void applyPropertyValue(ConfigurableListableBeanFactory factory,
+			String beanName, String property, String value) {
+		BeanDefinition bd = factory.getBeanDefinition(beanName);
+		String className = bd.getBeanClassName();
+		if ((className != null) && className.equals(ProxyFactoryBean.class.getName())) {
+			MutablePropertyValues mpv = bd.getPropertyValues();
+			PropertyValue targetSourceProperty = mpv.getPropertyValue("targetSource");
+			if (targetSourceProperty != null) {
+				Object targetRoot = targetSourceProperty.getValue();
+				if (targetRoot instanceof AbstractBeanDefinition) {
+					String targetClassName = ((AbstractBeanDefinition)targetRoot).getBeanClassName();
+					if (targetClassName.equals("org.springframework.aop.target.dynamic.BeanFactoryRefreshableTargetSource")) {
+						return;
+					}
+				}
+			}
+		}
+
+		super.applyPropertyValue(factory, beanName, property, value);
 	}
 
 	public void setBeanNameSeparator(String beanNameSeparator) {

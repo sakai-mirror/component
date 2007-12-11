@@ -32,7 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.util.ComponentsLoader;
-import org.sakaiproject.util.SakaiApplicationContext;
+import org.sakaiproject.util.ContainerApplicationContext;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -65,7 +65,7 @@ public class SpringCompMgr implements ComponentManager
 	protected final static String CONFIGURATION_FILE_NAME = "sakai-configuration.xml";
 
 	/** The Spring Application Context. */
-	protected SakaiApplicationContext m_ac = null;
+	protected ContainerApplicationContext m_ac = null;
 
 	/** The already created components given to manage (their interface names). */
 	protected Set m_loadedComponents = new HashSet();
@@ -100,8 +100,9 @@ public class SpringCompMgr implements ComponentManager
 		// Make sure a "sakai.home" system property is set.
 		ensureSakaiHome();
 		checkSecurityPath();
+		ensureComponentsRoot();
 
-		m_ac = new SakaiApplicationContext();
+		m_ac = new ContainerApplicationContext();
 		m_ac.setInitialSingletonNames(CONFIGURATION_COMPONENTS);
 		
 		List<String> configLocationList = new ArrayList<String>();
@@ -114,7 +115,8 @@ public class SpringCompMgr implements ComponentManager
 		m_ac.setConfigLocations(configLocationList.toArray(new String[0]));
 
 		// load component packages
-		loadComponents();
+		ComponentsLoader loader = new ComponentsLoader();
+		loader.load(m_ac, System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP));
 
 		// if configured (with the system property CLOSE_ON_SHUTDOWN set), create a shutdown task to close when the JVM closes
 		// (otherwise we will close in removeChildAc() when the last child is gone)
@@ -133,6 +135,7 @@ public class SpringCompMgr implements ComponentManager
 		{
 			// get the singletons loaded
 			m_ac.refresh();
+			loader.refreshAllComponentApplicationContexts();
 		}
 		catch (Throwable t)
 		{
@@ -279,14 +282,9 @@ public class SpringCompMgr implements ComponentManager
 
 		m_ac.getBeanFactory().registerSingleton(ifaceName, component);
 	}
-
-	/**
-	 * Locate the component loader, and load any available components.
-	 */
-	protected void loadComponents()
+	
+	private void ensureComponentsRoot()
 	{
-		ComponentsLoader loader = new ComponentsLoader();
-
 		// locate the components root
 		// if we have our system property set, use it
 		String componentsRoot = System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP);
@@ -308,9 +306,6 @@ public class SpringCompMgr implements ComponentManager
 
 		// make sure this is set
 		System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
-
-		// load components
-		loader.load(m_ac, componentsRoot);
 	}
 
 	/**

@@ -24,6 +24,8 @@ package org.sakaiproject.util;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -39,14 +41,15 @@ import org.springframework.context.support.GenericApplicationContext;
  * PostProcessor objects (e.g., SakaiProperties) a chance to do their work,
  * and load a few central components before the rest.
  */
-public class SakaiApplicationContext extends GenericApplicationContext {
+public class ContainerApplicationContext extends GenericApplicationContext {
+	private static Log log = LogFactory.getLog(ContainerApplicationContext.class);
 	private String[] initialSingletonNames;
 	private String[] configLocations;
 
-	public SakaiApplicationContext() {
+	public ContainerApplicationContext() {
 		super(new NoisierDefaultListableBeanFactory());
 	}
-	
+
 	/**
 	 * Load component manager configurations. A more normal hook for this is
 	 * the "refreshBeanFactory" method, but it's declared final by GenericApplicationContext.
@@ -71,7 +74,7 @@ public class SakaiApplicationContext extends GenericApplicationContext {
 			beanDefinitionReader.loadBeanDefinitions(configLocations);
 		}
 	}
-	
+
 	/**
 	 * Before post-processing, load beans which have declared that they want to add post-processors
 	 * dynamically.
@@ -80,7 +83,7 @@ public class SakaiApplicationContext extends GenericApplicationContext {
 		invokePostProcessorCreators(beanFactory);
 		super.postProcessBeanFactory(beanFactory);
 	}
-	
+
 	/**
 	 * Load initial beans before going through the default logic.
 	 */
@@ -102,6 +105,7 @@ public class SakaiApplicationContext extends GenericApplicationContext {
 		for (int i = 0; i < postProcessorCreatorNames.length; i++) {
 			BeanFactoryPostProcessorCreator postProcessorCreator = (BeanFactoryPostProcessorCreator)beanFactory.getBean(postProcessorCreatorNames[i]);
 			for (BeanFactoryPostProcessor beanFactoryPostProcessor : postProcessorCreator.getBeanFactoryPostProcessors()) {
+				// Add to the container.
 				addBeanFactoryPostProcessor(beanFactoryPostProcessor);
 			}
 		}
