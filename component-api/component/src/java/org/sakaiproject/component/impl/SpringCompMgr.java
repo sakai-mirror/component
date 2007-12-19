@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -349,6 +350,15 @@ public class SpringCompMgr implements ComponentManager
 		}
 
 		return catalina;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public Properties getConfig()
+	{
+		if (M_log.isErrorEnabled()) M_log.error("getConfig called; ServerConfigurationService should be used instead", new Exception());
+		return null;
 	}
 
 	/**

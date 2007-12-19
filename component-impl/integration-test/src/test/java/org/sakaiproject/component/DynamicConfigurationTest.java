@@ -40,9 +40,9 @@ import org.sakaiproject.test.SakaiTestBase;
  */
 public class DynamicConfigurationTest extends SakaiTestBase {
 	private static Log log = LogFactory.getLog(DynamicConfigurationTest.class);
-	
+
 	private ServerConfigurationService serverConfigurationService;
-	
+
 	public static Test suite() {
 		TestSetup setup = new TestSetup(new TestSuite(DynamicConfigurationTest.class)) {
 			protected void setUp() throws Exception {
@@ -53,29 +53,31 @@ public class DynamicConfigurationTest extends SakaiTestBase {
 					log.warn(e);
 				}
 			}
-			protected void tearDown() throws Exception {	
+			protected void tearDown() throws Exception {
 				oneTimeTearDown();
 			}
 		};
 		return setup;
 	}
-	
+
 	public void setUp() throws Exception {
 		serverConfigurationService = (ServerConfigurationService)getService(ServerConfigurationService.class.getName());
 	}
-	
+
 	public void testDynamicProperties() throws Exception {
 		// Test for override of "sakai.properties" value by DB.
 		String dynamicValue1 = serverConfigurationService.getString("dynamicKey1");
 		Assert.assertTrue("initialDynamicValue1".equals(dynamicValue1));
-		
+
 		// Test for override of component property.
 		ITestComponent testComponent = (ITestComponent)getService(ITestComponent.class.getName());
 		Assert.assertTrue(testComponent.getOverrideString1().equals("dynamic"));
-		
-		// Test for dynamic property setting and retrieval.
+
+		// Test for dynamic property setting and retrieval using AOP?
+		// Not really needed for testing SAK-8315 changes, but could
+		// be interesting for developers to see.
 	}
-	
+
 	public static void initializeSakaiHome() {
 		URL propertiesUrl = ConfigurationLoadingTest.class.getClassLoader().getResource("dynamic/sakai.properties");
 		if (log.isDebugEnabled()) log.debug("propertiesUrl=" + propertiesUrl);
@@ -83,7 +85,7 @@ public class DynamicConfigurationTest extends SakaiTestBase {
 			String propertiesFileName = propertiesUrl.getFile();
 			String sakaiHomeDir = propertiesFileName.substring(0, propertiesFileName.lastIndexOf("sakai.properties") - 1);
 			System.setProperty("test.sakai.home", sakaiHomeDir);
-		}		
+		}
 	}
 
 }

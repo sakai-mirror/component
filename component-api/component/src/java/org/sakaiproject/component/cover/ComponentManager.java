@@ -106,6 +106,15 @@ public class ComponentManager
 		getInstance().close();
 	}
 
+	/**
+	 * @deprecated This method is redundant, not used by any known client, would expose implementation details,
+	 *   and will be removed in a future release. Use the ServerConfigurationService instead.
+	 */
+	@Deprecated public static java.util.Properties getConfig()
+	{
+		return getInstance().getConfig();
+	}
+
 	public static void waitTillConfigured()
 	{
 		getInstance();
