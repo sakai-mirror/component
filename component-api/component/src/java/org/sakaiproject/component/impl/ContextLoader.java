@@ -65,11 +65,13 @@ public class ContextLoader extends org.springframework.web.context.ContextLoader
 
 		// if we have a parent and any shared bean definitions, load them into the parent
 		ConfigurableApplicationContext parent = (ConfigurableApplicationContext) rv.getParent();
+		M_log.info("Parent Component Manager is "+parent);
 		if (parent != null)
 		{
 			String sharedConfig = servletContext.getInitParameter(SHARED_LOCATION_PARAM);
 			if (sharedConfig != null)
 			{
+				M_log.info("Shared Config is  "+sharedConfig);
 				String[] locations = StringUtils.tokenizeToStringArray(sharedConfig,
 						ConfigurableWebApplicationContext.CONFIG_LOCATION_DELIMITERS);
 				if (locations != null)
@@ -80,6 +82,7 @@ public class ContextLoader extends org.springframework.web.context.ContextLoader
 					{
 						try
 						{
+							M_log.info("Loading   "+locations[i]);
 							reader.loadBeanDefinitions(rv.getResources(locations[i]));
 						}
 						catch (IOException e)

@@ -21,6 +21,8 @@
 
 package org.sakaiproject.util;
 
+import java.io.File;
+
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -34,5 +36,11 @@ public interface SpringComponentManager
 	 * @return
 	 */
 	ConfigurableApplicationContext getApplicationContext();
+
+	/**
+	 * @param file
+	 * @param context
+	 */
+	void registerComponentPackage(String name, ConfigurableApplicationContext context);
 
 }

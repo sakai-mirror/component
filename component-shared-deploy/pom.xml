@@ -21,9 +21,29 @@
     <deploy.target>shared</deploy.target>
   </properties>
   <dependencies>
+<!--
     <dependency>
       <groupId>${sakai.spring.groupId}</groupId>
       <artifactId>${sakai.spring.artifactId}</artifactId>
+      <version>${sakai.spring.version}</version>
+      <scope>compile</scope>
+    </dependency>
+-->
+    <dependency>
+      <groupId>${sakai.spring.groupId}</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>${sakai.spring.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>${sakai.spring.groupId}</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${sakai.spring.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>${sakai.spring.groupId}</groupId>
+      <artifactId>spring-beans</artifactId>
       <version>${sakai.spring.version}</version>
       <scope>compile</scope>
     </dependency>

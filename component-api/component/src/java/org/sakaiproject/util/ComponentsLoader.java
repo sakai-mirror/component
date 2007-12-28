@@ -29,7 +29,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +39,7 @@ import org.sakaiproject.component.api.ComponentManager;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -52,6 +55,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
 
 	private static int loadOrder = 0;
+
 
 	public ComponentsLoader()
 	{
@@ -73,6 +77,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			// If not, this will throw.
 			ConfigurableApplicationContext ac = ((SpringComponentManager) mgr)
 					.getApplicationContext();
+			
 
 			// get a list of the folders in the root
 			File root = new File(componentsRoot);
@@ -110,6 +115,8 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			});
 
 			M_log.info("load: loading components from: " + componentsRoot);
+			
+		
 
 			// process the packages
 			for (int p = 0; p < packages.length; p++)
@@ -117,7 +124,9 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 				// if a valid components directory
 				if (validComponentsPackage(packages[p]))
 				{
-					loadComponentPackage(packages[p], ac, root);
+					ConfigurableApplicationContext lac = loadComponentPackage(packages[p], ac, root);
+					((SpringComponentManager) mgr).registerComponentPackage(packages[p].getName(),lac);
+					
 				}
 				else
 				{
@@ -140,7 +149,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	 *        The ApplicationContext to load into
 	 * @param root 
 	 */
-	protected void loadComponentPackage(File dir, ConfigurableApplicationContext ac, File root)
+	protected ConfigurableApplicationContext loadComponentPackage(File dir, ConfigurableApplicationContext ac, File root)
 	{
 		// setup the classloader onto the thread
 		ClassLoader current = Thread.currentThread().getContextClassLoader();
@@ -150,6 +159,14 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 		Thread.currentThread().setContextClassLoader(loader);
 
+		NoisierDefaultListableBeanFactory nbf = new NoisierDefaultListableBeanFactory();
+		ConfigurableApplicationContext componentac = new GenericApplicationContext(nbf);
+		componentac.setParent(ac);
+		
+		
+		// need to set some pre and post processors on each component loader
+
+		
 		File xml = null;
 
 		try
@@ -160,7 +177,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 			// make a reader
 			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(
-					(BeanDefinitionRegistry) ac.getBeanFactory());
+					(BeanDefinitionRegistry) componentac.getBeanFactory());
 
 			// In Spring 2, classes aren't loaded during bean parsing unless
 			// this
@@ -233,6 +250,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			// restore the context loader
 			Thread.currentThread().setContextClassLoader(current);
 		}
+		return componentac;
 	}
 
 	/**
