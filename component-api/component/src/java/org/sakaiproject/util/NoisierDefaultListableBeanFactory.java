@@ -23,7 +23,11 @@
 package org.sakaiproject.util;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.api.ComponentBeanFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -40,11 +44,15 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * name and a stack trace of the exception.
  */
 public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory
+		implements ComponentBeanFactory
 {
 
-	private Map<String, NoisierDefaultListableBeanFactory> defaultListableBeanFactories;
+	private Map<String, ComponentBeanFactory> defaultListableBeanFactories;
 
+	private Map<String, Object> exportedBeans;
 	
+	private Map<String, Object> externalReferences = new ConcurrentHashMap<String, Object>();
+
 	public void preInstantiateSingletons() throws BeansException
 	{
 		if (logger.isDebugEnabled())
@@ -107,57 +115,95 @@ public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactor
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#getBeanDefinition(java.lang.String)
+	 * @see org.springframework.beans.factory.support.AbstractBeanFactory#getBean(java.lang.String)
 	 */
 	@Override
-	public BeanDefinition getBeanDefinition(String arg0)
-			throws NoSuchBeanDefinitionException
+	public Object getBean(String name) throws BeansException
 	{
 		try
 		{
-			return getBeanDefinitionInternal(arg0);
+			if (containsBean(name))
+			{
+				return getLocalBean(name);
+			}
 		}
-		catch (NoSuchBeanDefinitionException nsbde)
+		catch (BeansException nsbde)
 		{
-			for (NoisierDefaultListableBeanFactory bf : defaultListableBeanFactories
-					.values())
+		}
+
+		Object bean = exportedBeans.get(name);
+		if (bean != null)
+		{
+			logger.warn("Bean " + name + " has been exported ");
+			externalReferences.put(name, bean);
+			return bean;
+		}
+
+		for (ComponentBeanFactory bf : defaultListableBeanFactories.values())
+		{
+			if (bf.containsBean(name))
 			{
 				try
 				{
-					return bf.getBeanDefinitionInternal(arg0);
+					bean = bf.getLocalBean(name);
+					logger.warn("Bean " + name + " Exported from " + bf);
+					exportedBeans.put(name, bean);
+					externalReferences.put(name, bean);
+					return bean;
+
 				}
-				catch (NoSuchBeanDefinitionException nsbde2)
+				catch (BeansException nsbde2)
 				{
+					logger.warn("Failed to get Bean " + name, nsbde2);
 				}
 			}
 		}
-		throw new NoSuchBeanDefinitionException(arg0);
+		throw new NoSuchBeanDefinitionException(name);
 	}
 
 	/**
 	 * @param arg0
 	 * @return
 	 */
-	private BeanDefinition getBeanDefinitionInternal(String arg0)
+	public Object getLocalBean(String arg0)
 	{
-		return super.getBeanDefinition(arg0);
+		return super.getBean(arg0);
+
 	}
 
 	/**
 	 * @return the defaultListableBeanFactories
 	 */
-	public Map<String, NoisierDefaultListableBeanFactory> getDefaultListableBeanFactories()
+	public Map<String, ComponentBeanFactory> getDefaultListableBeanFactories()
 	{
 		return defaultListableBeanFactories;
 	}
 
 	/**
-	 * @param defaultListableBeanFactories the defaultListableBeanFactories to set
+	 * @param defaultListableBeanFactories
+	 *        the defaultListableBeanFactories to set
 	 */
 	public void setDefaultListableBeanFactories(
-			Map<String, NoisierDefaultListableBeanFactory> defaultListableBeanFactories)
+			Map<String, ComponentBeanFactory> defaultListableBeanFactories)
 	{
 		this.defaultListableBeanFactories = defaultListableBeanFactories;
+	}
+
+	/**
+	 * @return the exportedBeans
+	 */
+	public Map<String, Object> getExportedBeans()
+	{
+		return exportedBeans;
+	}
+
+	/**
+	 * @param exportedBeans
+	 *        the exportedBeans to set
+	 */
+	public void setExportedBeans(Map<String, Object> exportedBeans)
+	{
+		this.exportedBeans = exportedBeans;
 	}
 
 }

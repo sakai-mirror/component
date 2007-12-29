@@ -19,28 +19,28 @@
  *
  **********************************************************************************/
 
-package org.sakaiproject.util;
+package org.sakaiproject.component.api;
 
-import org.springframework.context.ConfigurableApplicationContext;
+
 
 /**
  * @author ieb
  *
  */
-public interface SpringComponentManager
+public interface ComponentBeanFactory
 {
 
-	/**
-	 * Get the base Application Context from the Spring component manager
-	 * @return
-	 */
-	ConfigurableApplicationContext getApplicationContext();
 
 	/**
-	 * Register an Applicaiton Context suplying a component package with the Component Manager
-	 * @param file
-	 * @param context
+	 * @param arg0
+	 * @return
 	 */
-	void registerComponentPackage(String name, ConfigurableApplicationContext context);
+	Object getLocalBean(String name);
+
+	/**
+	 * @param name
+	 * @return
+	 */
+	boolean containsBean(String name);
 
 }

@@ -30,6 +30,7 @@ import javax.management.ObjectName;
 
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ComponentManagerNotAvailableException;
+import org.sakaiproject.util.SpringComponentManager;
 
 /**
  * This bean provides access to the component manager, users that need acess to
@@ -172,6 +173,14 @@ public class ComponentManagerProxy implements ComponentManager
 	public void waitTillConfigured()
 	{
 		componentManager.waitTillConfigured();
+	}
+
+	/**
+	 * @return
+	 */
+	public ComponentManager getComponentManager()
+	{
+		return componentManager;
 	}
 
 }

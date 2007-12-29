@@ -29,7 +29,6 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.proxy.ComponentManagerProxy;
 
 /**
  * <p>
@@ -85,6 +84,7 @@ public class ComponentManager
 		{
 			log.error("Unable to get reference to component Manager ", ex);
 		}
+		log.info("Got ComponentManager as "+m_componentManager);
 		return m_componentManager;
 	}
 

@@ -25,6 +25,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.api.ComponentManagerException;
+import org.sakaiproject.component.proxy.ComponentManagerProxy;
+
 /**
  * <p>
  * ComponentMap exposes the registered components as a map - the component id is mapped to the component implementation.
@@ -32,6 +37,8 @@ import java.util.Set;
  */
 public class ComponentMap implements Map
 {
+	private static final Log log = LogFactory.getLog(ComponentMap.class);
+
 	/**
 	 * @inheritDoc
 	 */
@@ -54,7 +61,13 @@ public class ComponentMap implements Map
 	 */
 	public boolean containsKey(Object arg0)
 	{
-		return org.sakaiproject.component.cover.ComponentManager.contains((String) arg0);
+		try {
+			ComponentManagerProxy cmp = new ComponentManagerProxy();
+			return cmp.contains((String)arg0);
+		} catch ( ComponentManagerException cmex ) {
+			log.error(cmex.getMessage());
+			return false;
+		}
 	}
 
 	/**
@@ -70,7 +83,13 @@ public class ComponentMap implements Map
 	 */
 	public Object get(Object arg0)
 	{
-		return org.sakaiproject.component.cover.ComponentManager.get((String) arg0);
+		try {
+			ComponentManagerProxy cmp = new ComponentManagerProxy();
+			return cmp.get((String)arg0);
+		} catch ( ComponentManagerException cmex ) {
+			log.error(cmex.getMessage());
+			return null;
+		}
 	}
 
 	/**

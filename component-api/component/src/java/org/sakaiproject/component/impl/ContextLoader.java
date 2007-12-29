@@ -27,7 +27,9 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.cover.ComponentManager;
+import org.sakaiproject.component.api.ComponentManagerException;
+import org.sakaiproject.component.proxy.ComponentManagerProxy;
+import org.sakaiproject.util.SpringComponentManager;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -106,9 +108,18 @@ public class ContextLoader extends org.springframework.web.context.ContextLoader
 	 */
 	protected ApplicationContext loadParentContext(ServletContext servletContext) throws BeansException
 	{
-		// get the component manager (we know it's a SpringCompMgr) and from that the shared AC
-		ConfigurableApplicationContext sharedAc = ((SpringCompMgr) ComponentManager.getInstance()).getApplicationContext();
-
-		return sharedAc;
+		// get the component manager (we know it's a SpringCompMgr) and from
+		// that the shared AC
+		try
+		{
+			ComponentManagerProxy cmp = new ComponentManagerProxy();
+			return ((SpringComponentManager) cmp.getComponentManager())
+					.getApplicationContext();
+		}
+		catch (ComponentManagerException cmex)
+		{
+			M_log.error(cmex.getMessage());
+			return null;
+		}
 	}
 }

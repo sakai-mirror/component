@@ -29,15 +29,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.FileSystemResource;
@@ -75,7 +73,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 			}
 			// get the ComponentManager's AC - assuming this is a SpringCompMgr.
 			// If not, this will throw.
-			ConfigurableApplicationContext ac = ((SpringComponentManager) mgr)
+			ApplicationContext ac = ((SpringComponentManager) mgr)
 					.getApplicationContext();
 			
 
@@ -149,7 +147,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	 *        The ApplicationContext to load into
 	 * @param root 
 	 */
-	protected ConfigurableApplicationContext loadComponentPackage(File dir, ConfigurableApplicationContext ac, File root)
+	protected ConfigurableApplicationContext loadComponentPackage(File dir, ApplicationContext ac, File root)
 	{
 		// setup the classloader onto the thread
 		ClassLoader current = Thread.currentThread().getContextClassLoader();

@@ -37,6 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ComponentsLoader;
+import org.sakaiproject.component.api.ComponentBeanFactory;
 import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
 import org.sakaiproject.util.PropertyOverrideConfigurer;
 import org.sakaiproject.util.SpringComponentManager;
@@ -86,7 +87,9 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 
 	private Map<String, ConfigurableApplicationContext> componentPackages = new ConcurrentHashMap<String, ConfigurableApplicationContext>();
 
-	private Map<String, NoisierDefaultListableBeanFactory> defaultListableBeanFactories = new ConcurrentHashMap<String, NoisierDefaultListableBeanFactory>();
+	private Map<String, ComponentBeanFactory> defaultListableBeanFactories = new ConcurrentHashMap<String, ComponentBeanFactory>();
+
+	private Map<String, Object> exportedBeans = new ConcurrentHashMap<String, Object>();
 
 	/**
 	 * Initialize.
@@ -117,6 +120,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 		nbf = new NoisierDefaultListableBeanFactory();
 		m_ac = new GenericApplicationContext(nbf);
 		nbf.setDefaultListableBeanFactories(defaultListableBeanFactories);
+		nbf.setExportedBeans(exportedBeans );
 		defaultListableBeanFactories.put("root", nbf);
 
 		
@@ -505,6 +509,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 					component = ac.getBean(iface.getName(), iface);
 					if (component != null)
 					{
+						M_log.warn("iface2+++++++++++ got(" + iface.getName() + "): as from component "+component);
 						return component;
 					}
 				}
@@ -521,6 +526,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 			}
 
 		}
+		M_log.warn("iface++++++++++++++++++ got(" + iface.getName() + "): as "+component);
 
 		return component;
 	}
@@ -547,6 +553,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 		}
 		if (component == null)
 		{
+			
 			for (ConfigurableApplicationContext ac : componentPackages.values())
 			{
 				try
@@ -554,6 +561,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 					component = ac.getBean(ifaceName);
 					if (component != null)
 					{
+						M_log.warn("++++++++++++++ got(" + ifaceName + "): as from component "+component);
 						return component;
 					}
 				}
@@ -570,6 +578,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 			}
 
 		}
+		M_log.warn("+++++++++++++++ got(" + ifaceName + "): as "+component);
 
 		return component;
 	}
@@ -869,6 +878,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 		componentPackages.put(name, context);
 		NoisierDefaultListableBeanFactory rnbf = (NoisierDefaultListableBeanFactory) context.getBeanFactory();
 		rnbf.setDefaultListableBeanFactories(defaultListableBeanFactories);
+		rnbf.setExportedBeans(exportedBeans);
 		defaultListableBeanFactories.put(name, rnbf);
 
 	}
