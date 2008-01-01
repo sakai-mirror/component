@@ -27,17 +27,18 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
+import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.util.SakaiProperties;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Xml;
-import org.sakaiproject.tool.api.SessionManager;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,44 +49,42 @@ import org.w3c.dom.NodeList;
  * BasicConfigurationService is a basic implementation of the ServerConfigurationService.
  * </p>
  */
-public abstract class BasicConfigurationService implements ServerConfigurationService
+public class BasicConfigurationService implements ServerConfigurationService
 {
 	/** Our log (commons). */
 	private static Log M_log = LogFactory.getLog(BasicConfigurationService.class);
 
 	/** The instance id for this app server. */
-	protected String instanceId = null;
+	private String instanceId = null;
 
 	/** This is computed, joining the configured serverId and the set instanceId. */
-	protected String serverIdInstance = null;
+	private String serverIdInstance = null;
 
 	/** The map of values from the loaded properties - not synchronized at access. */
-	protected Map m_properties = new HashMap();
-
-	/** Full path to registration files. */
-	protected String m_registrationPath = null;
+	private Properties properties;
 
 	/** File name within sakai.home for the tool order file. */
-	protected String toolOrderFile = null;
+	private String toolOrderFile = null;
+	private Resource defaultToolOrderResource;
 
 	/** loaded tool orders - map keyed by category of List of tool id strings. */
-	protected Map m_toolOrders = new HashMap();
+	private Map m_toolOrders = new HashMap();
 
 	/** required tools - map keyed by category of List of tool id strings. */
-	protected Map m_toolsRequired = new HashMap();
+	private Map m_toolsRequired = new HashMap();
 
 	/** default tools - map keyed by category of List of tool id strings. */
-	protected Map m_defaultTools = new HashMap();
+	private Map m_defaultTools = new HashMap();
 
-   /** default tool categories in order mapped by site type */
-   protected Map<String, List<String>> m_toolCategoriesList = new HashMap();
-   
-   /** default tool categories to tool id maps mapped by site type */
-   protected Map<String, Map<String, List<String>>> m_toolCategoriesMap = new HashMap();
-   
-   /** default tool id to tool category maps mapped by site type */
-   protected Map<String, Map<String, String>> m_toolToToolCategoriesMap = new HashMap();
-   
+	/** default tool categories in order mapped by site type */
+	private Map<String, List<String>> m_toolCategoriesList = new HashMap();
+
+	/** default tool categories to tool id maps mapped by site type */
+	private Map<String, Map<String, List<String>>> m_toolCategoriesMap = new HashMap();
+
+	/** default tool id to tool category maps mapped by site type */
+	private Map<String, Map<String, String>> m_toolToToolCategoriesMap = new HashMap();
+
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Dependencies
@@ -94,30 +93,21 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	/**
 	 * @return the ThreadLocalManager collaborator.
 	 */
-	protected abstract ThreadLocalManager threadLocalManager();
+	private ThreadLocalManager threadLocalManager;
 
 	/**
 	 * @return the SessionManager collaborator.
 	 */
-	protected abstract SessionManager sessionManager();
+	private SessionManager sessionManager;
+	
+	private SakaiProperties sakaiProperties;
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Configuration
 	 *********************************************************************************************************************************************************************************************************************************************************/
 
 	/**
-	 * Configuration: set the file path for registration files.
-	 * 
-	 * @param string
-	 *        The file path for registration files.
-	 */
-	public void setRegistrationPath(String string)
-	{
-		m_registrationPath = string;
-	}
-
-	/**
-	 * Configuration: set the file name within sakai.home for tool order file.
+	 * Configuration: set the file name for tool order file.
 	 * 
 	 * @param string
 	 *        The file name for tool order file.
@@ -136,8 +126,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public void init()
 	{
-		// load the properties, from the configuration manager's set of properties that were used to configure the components
-		m_properties.putAll(ComponentManager.getConfig());
+		this.properties = sakaiProperties.getProperties();
 
 		try
 		{
@@ -155,7 +144,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 		// load in the tool order, if specified, from the sakai home area
 		if (toolOrderFile != null)
 		{
-			File f = new File(getSakaiHomePath() + toolOrderFile);
+			File f = new File(toolOrderFile);
 			if (f.exists())
 			{
 				try
@@ -164,8 +153,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 				}
 				catch (Throwable t)
 				{
-					M_log.warn("init(): trouble loading tool order from : " + getSakaiHomePath() + toolOrderFile + " : "
-							+ t.toString());
+					M_log.warn("init(): trouble loading tool order from : " + toolOrderFile, t);
 				}
 			}
 			else
@@ -173,22 +161,11 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 				// start with the distributed defaults from the classpath
 				try
 				{
-					ClassPathResource rsrc = new ClassPathResource("org/sakaiproject/config/toolOrder.xml");
-
-					try
-					{
-						loadToolOrder(rsrc.getInputStream());
-					}
-					catch (Throwable t)
-					{
-						M_log
-								.warn("init(): trouble loading tool order from org/sakaiproject/config/toolOrder.xml: "
-										+ t.toString());
-					}
+					loadToolOrder(defaultToolOrderResource.getInputStream());
 				}
 				catch (Throwable t)
 				{
-					M_log.warn(t.toString());
+					M_log.warn("init(): trouble loading tool order from default toolOrder.xml", t);
 				}
 			}
 		}
@@ -213,7 +190,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getServerId()
 	{
-		return (String) m_properties.get("serverId");
+		return (String) properties.get("serverId");
 	}
 
 	/**
@@ -238,10 +215,10 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	public String getServerUrl()
 	{
 		// try to get the value pre-computed for this request, to better match the request server naming conventions
-		String rv = (String) threadLocalManager().get(CURRENT_SERVER_URL);
+		String rv = (String) threadLocalManager.get(CURRENT_SERVER_URL);
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("serverUrl");
+			rv = (String) properties.get("serverUrl");
 		}
 
 		return rv;
@@ -253,7 +230,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getServerName()
 	{
-		return (String) m_properties.get("serverName");
+		return (String) properties.get("serverName");
 	}
 
 	/**
@@ -261,7 +238,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getAccessUrl()
 	{
-		return getServerUrl() + (String) m_properties.get("accessPath");
+		return getServerUrl() + (String) properties.get("accessPath");
 	}
 
 	/**
@@ -269,7 +246,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getAccessPath()
 	{
-		return (String) m_properties.get("accessPath");
+		return (String) properties.get("accessPath");
 	}
 
 	/**
@@ -277,7 +254,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getHelpUrl(String helpContext)
 	{
-		String rv = getPortalUrl() + (String) m_properties.get("helpPath") + "/main";
+		String rv = getPortalUrl() + (String) properties.get("helpPath") + "/main";
 		if (helpContext != null)
 		{
 			rv += "?help=" + helpContext;
@@ -291,10 +268,10 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getPortalUrl()
 	{
-		String rv = (String) threadLocalManager().get(CURRENT_PORTAL_PATH);
+		String rv = (String) threadLocalManager.get(CURRENT_PORTAL_PATH);
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("portalPath");
+			rv = (String) properties.get("portalPath");
 		}
 
 		String portalUrl = getServerUrl() + rv;
@@ -307,7 +284,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getToolUrl()
 	{
-		return getServerUrl() + (String) m_properties.get("toolPath");
+		return getServerUrl() + (String) properties.get("toolPath");
 	}
 
 	/**
@@ -317,16 +294,16 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	{
 		// get the configured URL (the text "#UID#" will be repalced with the current logged in user id
 		// NOTE: this is relative to the server root
-		String rv = (String) m_properties.get("userHomeUrl");
+		String rv = (String) properties.get("userHomeUrl");
 
 		// form a site based portal id if not configured
 		if (rv == null)
 		{
-			rv = (String) m_properties.get("portalPath") + "/site/~#UID#";
+			rv = (String) properties.get("portalPath") + "/site/~#UID#";
 		}
 
 		// check for a logged in user
-		String user = sessionManager().getCurrentSessionUserId();
+		String user = sessionManager.getCurrentSessionUserId();
 		boolean loggedIn = (user != null);
 
 		// if logged in, replace the UID in the pattern
@@ -346,7 +323,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getGatewaySiteId()
 	{
-		String rv = (String) m_properties.get("gatewaySiteId");
+		String rv = (String) properties.get("gatewaySiteId");
 
 		if (rv == null)
 		{
@@ -361,7 +338,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getLoggedOutUrl()
 	{
-		String rv = (String) m_properties.get("loggedOutUrl");
+		String rv = (String) properties.get("loggedOutUrl");
 		if (rv != null)
 		{
 			// if not a full URL, add the server to the front
@@ -385,14 +362,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getSakaiHomePath()
 	{
-		String rv = System.getProperty("sakai.home");
-		if (rv == null)
-		{
-			rv = "/usr/local/sakai/";
-		}
-		if (!rv.endsWith("/")) rv = rv + "/";
-
-		return rv;
+		return System.getProperty("sakai.home");
 	}
 
 	/**
@@ -408,7 +378,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 */
 	public String getString(String name, String dflt)
 	{
-		String rv = StringUtil.trimToNull((String) m_properties.get(name));
+		String rv = StringUtil.trimToNull((String) properties.get(name));
 		if (rv == null) rv = dflt;
 
 		return rv;
@@ -566,7 +536,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 	 * @param in
 	 *        The Stream to load
 	 */
-	protected void loadToolOrder(InputStream in)
+	private void loadToolOrder(InputStream in)
 	{
 		Document doc = Xml.readDocumentFromStream(in);
 		Element root = doc.getDocumentElement();
@@ -636,7 +606,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 		}
 	}
 
-   protected void processCategory(Element element, List order, List required,
+   private void processCategory(Element element, List order, List required,
                                   List defaultTools, List<String> toolCategories,
                                   Map<String, List<String>> toolCategoryMappings, 
                                   Map<String, String> toolToCategoryMap) {
@@ -669,7 +639,7 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
       }      
    }
 
-   protected String processTool(Element element, List order, List required, List defaultTools) {
+   private String processTool(Element element, List order, List required, List defaultTools) {
 								String id = StringUtil.trimToNull(element.getAttribute("id"));
 								if (id != null)
 								{
@@ -688,5 +658,26 @@ public abstract class BasicConfigurationService implements ServerConfigurationSe
 									defaultTools.add(id);
 								}
       return id;
+	}
+
+
+	public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
+		this.threadLocalManager = threadLocalManager;
+	}
+
+	public void setSessionManager(SessionManager sessionManager) {
+		this.sessionManager = sessionManager;
+	}
+
+	public void setDefaultToolOrderResource(Resource defaultToolOrderResource) {
+		this.defaultToolOrderResource = defaultToolOrderResource;
+	}
+
+	public Properties getProperties() {
+		return properties;
+	}
+
+	public void setSakaiProperties(SakaiProperties sakaiProperties) {
+		this.sakaiProperties = sakaiProperties;
 	}
 }

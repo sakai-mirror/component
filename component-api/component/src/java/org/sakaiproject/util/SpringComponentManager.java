@@ -41,6 +41,6 @@ public interface SpringComponentManager
 	 * @param file
 	 * @param context
 	 */
-	void registerComponentPackage(String name, ConfigurableApplicationContext context);
+	void registerComponentPackage(String name, ComponentApplicationContext context);
 
 }

@@ -21,6 +21,8 @@
 
 package org.sakaiproject.component.api;
 
+import java.util.Map;
+
 
 
 /**
@@ -32,7 +34,7 @@ public interface ComponentBeanFactory
 
 
 	/**
-	 * @param arg0
+	 * @param name
 	 * @return
 	 */
 	Object getLocalBean(String name);
@@ -42,5 +44,27 @@ public interface ComponentBeanFactory
 	 * @return
 	 */
 	boolean containsBean(String name);
+
+	/**
+	 * @param type
+	 * @param includePrototypes
+	 * @param allowEagerInit
+	 * @return
+	 */
+	String[] getLocalBeanNamesForType(Class type, boolean includePrototypes, boolean allowEagerInit);
+
+	/**
+	 * @param type
+	 * @param includePrototypes
+	 * @param allowEagerInit
+	 * @return
+	 */
+	Map getLocalBeanNamesOfType(Class type, boolean includePrototypes, boolean allowEagerInit);
+
+	/**
+	 * @param beanName
+	 * @return
+	 */
+	boolean containsLocalBeanDefinition(String beanName);
 
 }

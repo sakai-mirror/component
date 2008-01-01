@@ -84,7 +84,6 @@ public class ComponentManager
 		{
 			log.error("Unable to get reference to component Manager ", ex);
 		}
-		log.info("Got ComponentManager as "+m_componentManager);
 		return m_componentManager;
 	}
 
@@ -128,10 +127,6 @@ public class ComponentManager
 		getInstance().close();
 	}
 
-	public static java.util.Properties getConfig()
-	{
-		return getInstance().getConfig();
-	}
 
 	public static void waitTillConfigured()
 	{

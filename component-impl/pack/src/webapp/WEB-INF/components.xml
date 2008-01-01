@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
 	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
 			class="org.sakaiproject.component.impl.BasicConfigurationService"
 			init-method="init"
-			destroy-method="destroy"
-			singleton="true">
+			destroy-method="destroy">
 
-		<lookup-method name="threadLocalManager" bean="org.sakaiproject.thread_local.api.ThreadLocalManager" />
-		<lookup-method name="sessionManager" bean="org.sakaiproject.tool.api.SessionManager" />
+		<property name="threadLocalManager" ref="org.sakaiproject.thread_local.api.ThreadLocalManager" />
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
 
-		<property name="toolOrderFile"><value>toolOrder.xml</value></property>
+		<property name="toolOrderFile" value="${sakai.home}toolOrder.xml"/>
+		<property name="defaultToolOrderResource" value="classpath:/org/sakaiproject/config/toolOrder.xml"/>
+
+		<property name="sakaiProperties" ref="org.sakaiproject.component.SakaiProperties"/>
 	</bean>
 
 </beans>

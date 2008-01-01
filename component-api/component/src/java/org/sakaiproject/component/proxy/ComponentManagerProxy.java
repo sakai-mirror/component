@@ -119,14 +119,6 @@ public class ComponentManagerProxy implements ComponentManager
 		return componentManager.get(ifaceName);
 	}
 
-	/**
-	 * 
-	 * @see org.sakaiproject.component.api.ComponentManager#getConfig()
-	 */
-	public Properties getConfig()
-	{
-		return componentManager.getConfig();
-	}
 
 	/**
 	 * 
