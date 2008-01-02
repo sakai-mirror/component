@@ -72,10 +72,10 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer
 	protected boolean ignoreInvalidKeys = false;
 
 	/** Contains names of beans that have overrides */
-	protected Set beanNames = Collections.synchronizedSet(new HashSet());
+	protected Set<String> beanNames = Collections.synchronizedSet(new HashSet<String>());
 
 	/** Here are all the name=value entries we read in. */
-	protected Map m_entries = new HashMap();
+	protected Map<String, String> m_entries = new HashMap<String, String>();
 
 	/**
 	 * Access the value of the entry with this name key

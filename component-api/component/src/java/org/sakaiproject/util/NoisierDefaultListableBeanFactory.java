@@ -36,7 +36,9 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * This subclasses the default bean factory to log the failing bean's name
  * and a stack trace of the exception.
  */
-public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory {
+public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactory  {
+	
+	
 	
 	public void preInstantiateSingletons() throws BeansException {
 		if (logger.isDebugEnabled()) {
@@ -86,4 +88,5 @@ public class NoisierDefaultListableBeanFactory extends DefaultListableBeanFactor
 		}
 		super.destroySingletons();
 	}
+	
 }

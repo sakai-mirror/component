@@ -22,7 +22,6 @@
 package org.sakaiproject.component.proxy;
 
 import java.lang.management.ManagementFactory;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -30,7 +29,6 @@ import javax.management.ObjectName;
 
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.component.api.ComponentManagerNotAvailableException;
-import org.sakaiproject.util.SpringComponentManager;
 
 /**
  * This bean provides access to the component manager, users that need acess to

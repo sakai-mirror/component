@@ -28,7 +28,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.util.SakaiProperties;
 
 /**
  * Handle any default sakai.properties values that need to be set dynamically.

@@ -41,7 +41,6 @@ import org.sakaiproject.util.ComponentApplicationContext.ComponentContexts;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -53,6 +52,8 @@ import org.springframework.core.io.Resource;
  */
 public class ComponentsLoader implements org.sakaiproject.component.api.ComponentsLoader
 {
+	private static final ComponentContexts COMPONENT_CONTEXT = ComponentApplicationContext.getComponentContextsOption();
+
 	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoader.class);
 
@@ -62,7 +63,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 
 	public ComponentsLoader()
 	{
-		if (ComponentApplicationContext.getComponentContextsOption() != ComponentContexts.NONE)
+		if (COMPONENT_CONTEXT != ComponentContexts.NONE)
 		{
 			componentApplicationContexts = new ArrayList<ComponentApplicationContext>();
 		}
@@ -75,7 +76,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	{
 		try
 		{
-			ConfigurableApplicationContext ac = ((SpringComponentManager)componentManager).getApplicationContext();
+			ContainerApplicationContext ac = ((SpringComponentManager)componentManager).getApplicationContext();
 			// get a list of the folders in the root
 			File root = new File(componentsRoot);
 
@@ -144,7 +145,7 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	 *        The ApplicationContext to load into
 	 */
 	protected ApplicationContext loadComponentPackage(File dir,
-			ConfigurableApplicationContext containerApplicationContext, File root)
+			ContainerApplicationContext containerApplicationContext, File root)
 	{
 		ComponentApplicationContext componentApplicationContext = null;
 		// setup the classloader onto the thread
@@ -161,8 +162,9 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 		try
 		{
 			mbeanRegistration.startLoad();
-			if (ComponentApplicationContext.getComponentContextsOption() == ComponentContexts.NONE)
+			if ( COMPONENT_CONTEXT == ComponentContexts.NONE)
 			{
+				M_log.info("Loading "+dir.getName()+" with no contexts ");
 				Thread.currentThread().setContextClassLoader(componentClassLoader);
 
 				// make a reader
@@ -189,12 +191,25 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 					Thread.currentThread().setContextClassLoader(currentClassLoader);
 				}
 			}
-			else if (ComponentApplicationContext.getComponentContextsOption() == ComponentContexts.ALL)
+			else if (COMPONENT_CONTEXT == ComponentContexts.ALL)
 			{
-				componentApplicationContext = new ComponentApplicationContext(
+				M_log.info("Loading "+dir.getName()+" with contexts, all exported ");
+				componentApplicationContext = new ComponentApplicationContext(dir.getName(),
 						containerApplicationContext, componentClassLoader,
 						getDefaultConfigResources(dir));
 				componentApplicationContext.refreshBeanDefinitions();
+				componentApplicationContexts.add(componentApplicationContext);
+			}
+			else if (COMPONENT_CONTEXT == ComponentContexts.AUTO)
+			{
+				M_log.info("Loading "+dir.getName()+" with contexts, auto export ");
+				componentApplicationContext = new ComponentApplicationContext(dir.getName(),
+						containerApplicationContext,  componentClassLoader,
+						getDefaultConfigResources(dir));
+				containerApplicationContext.registerChildApplicationContext(dir.getName(),
+						componentApplicationContext);
+
+				componentApplicationContext.refreshBeanDefinitionsNoExport();
 				componentApplicationContexts.add(componentApplicationContext);
 			}
 			mbeanRegistration.endLoad();
@@ -210,7 +225,8 @@ public class ComponentsLoader implements org.sakaiproject.component.api.Componen
 	 */
 	public void refreshAllComponentApplicationContexts()
 	{
-		if (ComponentApplicationContext.getComponentContextsOption() != ComponentContexts.NONE)
+		
+		if (COMPONENT_CONTEXT != ComponentContexts.NONE)
 		{
 			for (ComponentApplicationContext componentApplicationContext : componentApplicationContexts)
 			{

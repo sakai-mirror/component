@@ -21,7 +21,6 @@
 
 package org.sakaiproject.component.api;
 
-import java.util.Properties;
 import java.util.Set;
 
 /**

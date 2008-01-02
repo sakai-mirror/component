@@ -26,20 +26,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.api.ComponentBeanFactory;
 import org.sakaiproject.component.api.ComponentManager;
 import org.sakaiproject.util.ComponentApplicationContext;
 import org.sakaiproject.util.ComponentsLoader;
 import org.sakaiproject.util.ContainerApplicationContext;
 import org.sakaiproject.util.SpringComponentManager;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * <p>
@@ -73,7 +69,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 	protected ContainerApplicationContext m_ac = null;
 
 	/** The already created components given to manage (their interface names). */
-	protected Set m_loadedComponents = new HashSet();
+	protected Set<String> m_loadedComponents = new HashSet<String>();
 
 	/** A count of the # of child AC's that call us parent. */
 	protected int m_childCount = 0;
@@ -81,12 +77,6 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
 	
-	private Map<String, ComponentApplicationContext> componentPackages = new ConcurrentHashMap<String, ComponentApplicationContext>();
-
-	private Map<String, ComponentBeanFactory> defaultListableBeanFactories = new ConcurrentHashMap<String, ComponentBeanFactory>();
-
-	private Map<String, Object> exportedBeans = new ConcurrentHashMap<String, Object>();
-
 	/**
 	 * Initialize.
 	 * 
@@ -162,7 +152,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 	 * 
 	 * @return the ApplicationContext
 	 */
-	public ConfigurableApplicationContext getApplicationContext()
+	public ContainerApplicationContext getApplicationContext()
 	{
 		return m_ac;
 	}
@@ -248,7 +238,7 @@ public class SpringCompMgr implements ComponentManager, SpringComponentManager
 	 */
 	public Set getRegisteredInterfaces()
 	{
-		Set rv = new HashSet();
+		Set<String> rv = new HashSet<String>();
 
 		// get the registered ones
 		String[] names = m_ac.getBeanDefinitionNames();

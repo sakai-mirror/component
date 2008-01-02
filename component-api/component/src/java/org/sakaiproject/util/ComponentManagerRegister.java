@@ -21,25 +21,20 @@
 
 package org.sakaiproject.util;
 
+import java.util.Map;
+
+import org.sakaiproject.component.api.ComponentBeanFactory;
 
 /**
  * @author ieb
  *
  */
-public interface SpringComponentManager
+public interface ComponentManagerRegister
 {
 
 	/**
-	 * Get the base Application Context from the Spring component manager
 	 * @return
 	 */
-	ContainerApplicationContext getApplicationContext();
-
-	/**
-	 * Register an Applicaiton Context suplying a component package with the Component Manager
-	 * @param file
-	 * @param context
-	 */
-	void registerComponentPackage(String name, ComponentApplicationContext context);
+	Map<String, ComponentBeanFactory> getBeanFactories();
 
 }
