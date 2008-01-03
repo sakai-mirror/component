@@ -22,27 +22,20 @@
 package org.sakaiproject.component.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.api.ComponentManager;
-import org.sakaiproject.component.api.ComponentsLoader;
-import org.sakaiproject.util.NoisierDefaultListableBeanFactory;
-import org.sakaiproject.util.PropertyOverrideConfigurer;
+import org.sakaiproject.util.ComponentsLoader;
+import org.sakaiproject.util.SakaiApplicationContext;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * <p>
@@ -59,18 +52,27 @@ public class SpringCompMgr implements ComponentManager
 
 	/** System property to control if we close on jvm shutdown (if set) or on the loss of our last child (if not set). */
 	protected final static String CLOSE_ON_SHUTDOWN = "sakai.component.closeonshutdown";
+	
+	/** The Sakai configuration component package, which must be the last defined. */
+	protected final static String CONFIGURATION_COMPONENT_PACKAGE = "sakai-component-pack";
+	
+	/** The Sakai configuration components, which must be the first loaded. */
+	protected final static String[] CONFIGURATION_COMPONENTS = {
+		"org.sakaiproject.component.SakaiPropertyPromoter",
+		"org.sakaiproject.log.api.LogConfigurationManager"
+	};
+	
+	protected final static String DEFAULT_CONFIGURATION_FILE = "classpath:/org/sakaiproject/config/sakai-configuration.xml";
+	protected final static String CONFIGURATION_FILE_NAME = "sakai-configuration.xml";
 
 	/** The Spring Application Context. */
-	protected ConfigurableApplicationContext m_ac = null;
+	protected SakaiApplicationContext m_ac = null;
 
 	/** The already created components given to manage (their interface names). */
 	protected Set m_loadedComponents = new HashSet();
 
 	/** A count of the # of child AC's that call us parent. */
 	protected int m_childCount = 0;
-
-	/** A set of properties used when configuring components. */
-	protected Properties m_config = null;
 
 	/** Records that close has been called. */
 	protected boolean m_hasBeenClosed = false;
@@ -95,8 +97,22 @@ public class SpringCompMgr implements ComponentManager
 	public void init()
 	{
 		if (m_ac != null) return;
+		
+		// Make sure a "sakai.home" system property is set.
+		ensureSakaiHome();
+		checkSecurityPath();
 
-		m_ac = new GenericApplicationContext(new NoisierDefaultListableBeanFactory());
+		m_ac = new SakaiApplicationContext();
+		m_ac.setInitialSingletonNames(CONFIGURATION_COMPONENTS);
+		
+		List<String> configLocationList = new ArrayList<String>();
+		configLocationList.add(DEFAULT_CONFIGURATION_FILE);
+		String localConfigLocation = System.getProperty("sakai.home") + CONFIGURATION_FILE_NAME;
+		File configFile = new File(localConfigLocation);
+		if (configFile.exists()) {
+			configLocationList.add("file:" + localConfigLocation);
+		}
+		m_ac.setConfigLocations(configLocationList.toArray(new String[0]));
 
 		// load component packages
 		loadComponents();
@@ -113,141 +129,7 @@ public class SpringCompMgr implements ComponentManager
 				}
 			});
 		}
-
-		// find a path to sakai files on the app server - if not set, set it
-		String sakaiHomePath = System.getProperty("sakai.home");
-		if (sakaiHomePath == null)
-		{
-			String catalina = getCatalina();
-			if (catalina != null)
-			{
-				sakaiHomePath = catalina + File.separatorChar + "sakai" + File.separatorChar;
-			}
-		}
-
-		// strange case...
-		if (sakaiHomePath == null)
-		{
-			sakaiHomePath = File.separatorChar + "usr" + File.separatorChar + "local" + File.separatorChar + "sakai"
-					+ File.separatorChar;
-		}
-		if (!sakaiHomePath.endsWith(File.separator)) sakaiHomePath = sakaiHomePath + File.separatorChar;
-
-		final File sakaiHomeDirectory = new File(sakaiHomePath);
-		if(!sakaiHomeDirectory.exists()) // no sakai.home directory exists, try to create one
-		{
-			if(sakaiHomeDirectory.mkdir())
-			{
-				M_log.debug("Created sakai.home directory at: "
-						+ sakaiHomePath);
-			}
-			else
-			{
-				M_log.warn("Could not create sakai.home directory at: "
-						+ sakaiHomePath);
-			}
-		}
 		
-		// make sure it's set properly
-		System.setProperty("sakai.home", sakaiHomePath);
-
-		// check for the security home
-		String securityPath = System.getProperty("sakai.security");
-		if (securityPath != null)
-		{
-			// make sure it's properly slashed
-			if (!securityPath.endsWith(File.separator)) securityPath = securityPath + File.separatorChar;
-			System.setProperty("sakai.security", securityPath);
-		}
-
-		// Collect values from all the properties files: the later ones loaded override settings from prior.
-		m_config = new Properties();
-
-		// start with the distributed defaults from the classpath
-		try
-		{
-			ClassPathResource rsrc = new ClassPathResource("org/sakaiproject/config/sakai.properties");
-			if (rsrc.exists())
-			{
-				m_config.load(rsrc.getInputStream());
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// read all the files from the home path that are properties files
-		// TODO: not quite yet -ggolden
-		// readDirectoryPropertiesFiles(sakaiHomePath);
-
-		// TODO: deprecated placeholder.properties from sakai.home - remove in a later version of Sakai -ggolden
-		readPropertyFile(
-				sakaiHomePath,
-				"placeholder.properties",
-				"Deprecated use of placeholder.properties.  This file will not be read in future versions of Sakai.  Merge its content with the sakai.properties file.");
-
-		// these are potentially re-reading, but later wins over earlier, so we assure the order is preserved
-		readPropertyFile(sakaiHomePath, "sakai.properties");
-		readPropertyFile(sakaiHomePath, "local.properties");
-
-		// add last the security.properties
-		readPropertyFile(securityPath, "security.properties");
-
-		// auto-set the server id if missing
-		if (!m_config.containsKey("serverId"))
-		{
-			try
-			{
-				String id = InetAddress.getLocalHost().getHostName();
-				m_config.put("serverId", id);
-			}
-			catch (UnknownHostException e)
-			{ // empty catch block
-				M_log.trace("UnknownHostException expected: " + e.getMessage(), e);
-			}
-		}
-
-		// post process the definitions from components with overrides from these properties
-		// - these get injected into the beans
-		try
-		{
-			PropertyOverrideConfigurer pushProcessor = new PropertyOverrideConfigurer();
-			pushProcessor.setProperties(m_config);
-			pushProcessor.setIgnoreInvalidKeys(true);
-			pushProcessor.postProcessBeanFactory(m_ac.getBeanFactory());
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// post process the definitions from components (now overridden with our property overrides) to satisfy any placeholder
-		// values
-		try
-		{
-			PropertyPlaceholderConfigurer pullProcessor = new PropertyPlaceholderConfigurer();
-			pullProcessor.setProperties(m_config);
-			pullProcessor.postProcessBeanFactory(m_ac.getBeanFactory());
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
-		// set some system properties from the configuration values
-		promotePropertiesToSystem(m_config);
-
-		// get our special log handler started before the rest
-		try
-		{
-			m_ac.getBean("org.sakaiproject.log.api.LogConfigurationManager");
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-
 		try
 		{
 			// get the singletons loaded
@@ -258,89 +140,6 @@ public class SpringCompMgr implements ComponentManager
 			M_log.warn(t.getMessage(), t);
 		}
 	}
-
-	/**
-	 * Get a sorted list of the properties files in the directory.
-	 * 
-	 * @param directoryPath
-	 *        The directory.
-	 * @return A sorted list of the properties files in the directory.
-	 */
-	protected String[] getPropertyFileList(String directoryPath)
-	{
-		File f = new File(directoryPath);
-		String[] filelist = f.list(new FilenameFilter()
-		{
-			public boolean accept(File f, String s)
-			{
-				return s.endsWith(".properties");
-			}
-		});
-
-		Arrays.sort(filelist);
-		return filelist;
-	}
-
-	/**
-	 * Read in the properties files from this directory.
-	 * 
-	 * @param directoryPath
-	 *        The directory.
-	 */
-	protected void readDirectoryPropertiesFiles(String directoryPath)
-	{
-		for (String propertiesFile : getPropertyFileList(directoryPath))
-		{
-			readPropertyFile(directoryPath, propertiesFile);
-		}
-	}
-
-	/**
-	 * Read in a property file.
-	 * 
-	 * @param fileDirectory
-	 *        The file's path.
-	 * @param propertyFileName
-	 *        The file name.
-	 */
-	protected void readPropertyFile(String fileDirectory, String propertyFileName)
-	{
-		readPropertyFile(fileDirectory, propertyFileName, null);
-	}
-
-	/**
-	 * Read in a property file.
-	 * 
-	 * @param fileDirectory
-	 *        The file's path.
-	 * @param propertyFileName
-	 *        The file name.
-	 * @param loadMessage
-	 *        A message to show after loading.
-	 */
-	protected void readPropertyFile(String fileDirectory, String propertyFileName, String loadMessage)
-	{
-		try
-		{
-			File f = new File(fileDirectory + propertyFileName);
-			if (f.exists())
-			{
-				m_config.load(new FileInputStream(f));
-
-				if (loadMessage != null)
-				{
-					M_log.warn(loadMessage);
-				}
-
-				M_log.info("loaded properties file: " + fileDirectory + propertyFileName);
-			}
-		}
-		catch (Throwable t)
-		{
-			M_log.warn(t.getMessage(), t);
-		}
-	}
-
 	/**
 	 * Access the ApplicationContext
 	 * 
@@ -487,68 +286,32 @@ public class SpringCompMgr implements ComponentManager
 	 */
 	protected void loadComponents()
 	{
-		// see if we can find a components loader
-		ComponentsLoader loader = null;
+		ComponentsLoader loader = new ComponentsLoader();
 
-		// TODO: configure this?
-		String loaderClassName = "org.sakaiproject.util.ComponentsLoader";
-
-		// first see if it can be located via the thread class loader
-		try
+		// locate the components root
+		// if we have our system property set, use it
+		String componentsRoot = System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP);
+		if (componentsRoot == null)
 		{
-			loader = (ComponentsLoader) Thread.currentThread().getContextClassLoader().loadClass(loaderClassName).newInstance();
-		}
-		catch (Throwable any)
-		{ // empty catch block
-			M_log.trace("Expected Throwable: " + any.getMessage(), any);
-		}
-
-		// next try this class's loader
-		if (loader == null)
-		{
-			try
+			// if we are in Catalina, place it at ${catalina.home}/components/
+			String catalina = getCatalina();
+			if (catalina != null)
 			{
-				loader = (ComponentsLoader) getClass().getClassLoader().loadClass(loaderClassName).newInstance();
-			}
-			catch (Throwable any)
-			{ // empty catch block
-				M_log.trace("Expected Throwable: " + any.getMessage(), any);
+				componentsRoot = catalina + File.separatorChar + "components" + File.separatorChar;
 			}
 		}
 
-		// if we found the class
-		if (loader != null)
+		if (componentsRoot == null)
 		{
-			// locate the components root
-			// if we have our system property set, use it
-			String componentsRoot = System.getProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP);
-			if (componentsRoot == null)
-			{
-				// if we are in Catalina, place it at ${catalina.home}/components/
-				String catalina = getCatalina();
-				if (catalina != null)
-				{
-					componentsRoot = catalina + File.separatorChar + "components" + File.separatorChar;
-				}
-			}
-
-			if (componentsRoot == null)
-			{
-				M_log.warn("loadComponents: cannot estabish a root directory for the components packages");
-				return;
-			}
-
-			// make sure this is set
-			System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
-
-			// load components
-			loader.load(this, componentsRoot);
+			M_log.warn("loadComponents: cannot estabish a root directory for the components packages");
+			return;
 		}
 
-		else
-		{
-			M_log.warn("loadComponents: no component loader class found");
-		}
+		// make sure this is set
+		System.setProperty(SAKAI_COMPONENTS_ROOT_SYS_PROP, componentsRoot);
+
+		// load components
+		loader.load(m_ac, componentsRoot);
 	}
 
 	/**
@@ -590,61 +353,12 @@ public class SpringCompMgr implements ComponentManager
 	}
 
 	/**
-	 * If the properties has any of the values we need to set as sakai system properties, set them.
-	 * 
-	 * @param props
-	 *        The property override configurer with some override settings.
-	 */
-	protected void promotePropertiesToSystem(Properties props)
-	{
-		String serverId = props.getProperty("serverId");
-		if (serverId != null)
-		{
-			System.setProperty("sakai.serverId", serverId);
-		}
-
-		// for the request filter
-		String uploadMax = props.getProperty("content.upload.max");
-		if (uploadMax != null)
-		{
-			System.setProperty("sakai.content.upload.max", uploadMax);
-		}
-
-		// for the request filter
-		String uploadCeiling = props.getProperty("content.upload.ceiling");
-		if (uploadCeiling != null)
-		{
-			System.setProperty("sakai.content.upload.ceiling", uploadCeiling);
-		}
-
-		// for the request filter
-		String uploadDir = props.getProperty("content.upload.dir");
-		if (uploadDir != null)
-		{
-			System.setProperty("sakai.content.upload.dir", uploadDir);
-		}
-
-		if (props.getProperty("force.url.secure") != null)
-		{
-			try
-			{
-				// make sure it is an int
-				int port = Integer.parseInt(props.getProperty("force.url.secure"));
-				System.setProperty("sakai.force.url.secure", props.getProperty("force.url.secure"));
-			}
-			catch (Throwable e)
-			{
-				M_log.warn("force.url.secure set to a non numeric value: " + props.getProperty("force.url.secure"), e);
-			}
-		}
-	}
-
-	/**
 	 * @inheritDoc
 	 */
 	public Properties getConfig()
 	{
-		return m_config;
+		if (M_log.isErrorEnabled()) M_log.error("getConfig called; ServerConfigurationService should be used instead", new Exception());
+		return null;
 	}
 
 	/**
@@ -661,5 +375,57 @@ public class SpringCompMgr implements ComponentManager
 	public boolean hasBeenClosed()
 	{
 		return m_hasBeenClosed;
+	}
+	
+	private void ensureSakaiHome()
+	{
+		// find a path to sakai files on the app server - if not set, set it
+		String sakaiHomePath = System.getProperty("sakai.home");
+		if (sakaiHomePath == null)
+		{
+			String catalina = getCatalina();
+			if (catalina != null)
+			{
+				sakaiHomePath = catalina + File.separatorChar + "sakai" + File.separatorChar;
+			}
+		}
+
+		// strange case...
+		if (sakaiHomePath == null)
+		{
+			sakaiHomePath = File.separatorChar + "usr" + File.separatorChar + "local" + File.separatorChar + "sakai"
+					+ File.separatorChar;
+		}
+		if (!sakaiHomePath.endsWith(File.separator)) sakaiHomePath = sakaiHomePath + File.separatorChar;
+
+		final File sakaiHomeDirectory = new File(sakaiHomePath);
+		if(!sakaiHomeDirectory.exists()) // no sakai.home directory exists, try to create one
+		{
+			if(sakaiHomeDirectory.mkdir())
+			{
+				M_log.debug("Created sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+			else
+			{
+				M_log.warn("Could not create sakai.home directory at: "
+						+ sakaiHomePath);
+			}
+		}
+		
+		// make sure it's set properly
+		System.setProperty("sakai.home", sakaiHomePath);
+	}
+	
+	private void checkSecurityPath()
+	{
+		// check for the security home
+		String securityPath = System.getProperty("sakai.security");
+		if (securityPath != null)
+		{
+			// make sure it's properly slashed
+			if (!securityPath.endsWith(File.separator)) securityPath = securityPath + File.separatorChar;
+			System.setProperty("sakai.security", securityPath);
+		}
 	}
 }

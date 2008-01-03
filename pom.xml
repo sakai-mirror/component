@@ -38,8 +38,8 @@ limitations under the License.
 
   <packaging>pom</packaging>
   <modules>
-     <module>component-api/api</module>
      <module>component-api/component</module>
+     <module>component-api/api</module>
      <module>component-impl/impl</module>
      <module>component-impl/pack</module>
      <module>component-shared-deploy</module>

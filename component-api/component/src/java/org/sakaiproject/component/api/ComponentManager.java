@@ -105,12 +105,16 @@ public interface ComponentManager
 	/**
 	 * Access the configuration properties used when configuring components.
 	 * 
-	 * @return The Properties with the configuration values used when configuring components.
+	 * @deprecated This method is redundant, not used by any known client, would expose implementation details,
+	 *   and will be removed in a future release. Use the ServerConfigurationService instead.
+	 *
+	 * @return null
 	 */
-	Properties getConfig();
+	@Deprecated Properties getConfig();
 
 	/**
 	 * Wait right here till the component manager is fully configured.
+	 * @deprecated
 	 */
 	void waitTillConfigured();
 	

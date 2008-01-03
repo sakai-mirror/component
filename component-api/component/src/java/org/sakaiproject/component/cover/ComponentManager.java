@@ -106,7 +106,11 @@ public class ComponentManager
 		getInstance().close();
 	}
 
-	public static java.util.Properties getConfig()
+	/**
+	 * @deprecated This method is redundant, not used by any known client, would expose implementation details,
+	 *   and will be removed in a future release. Use the ServerConfigurationService instead.
+	 */
+	@Deprecated public static java.util.Properties getConfig()
 	{
 		return getInstance().getConfig();
 	}
