@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.component.impl.spring.StaggeredRefreshApplicationContext;
 import org.sakaiproject.component.impl.spring.ComponentRecord;
 import org.sakaiproject.component.impl.spring.ContextProcessor;
+import org.sakaiproject.component.util.FileUtil;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.FileSystemResource;
@@ -46,7 +47,6 @@ import org.springframework.core.io.Resource;
  * </p>
  */
 public class ComponentsLoaderImpl {
-	/** Our logger */
 	private static Log M_log = LogFactory.getLog(ComponentsLoaderImpl.class);
     private ContextProcessor processor;
 
@@ -101,7 +101,7 @@ public class ComponentsLoaderImpl {
 			for (int p = 0; p < packages.length; p++)
 			{
 				// if a valid components directory
-				if (validComponentsPackage(packages[p]))
+				if (FileUtil.validComponentsPackage(packages[p]))
 				{
 					loadComponentPackage(packages[p]);
 				}
@@ -171,14 +171,14 @@ public class ComponentsLoaderImpl {
 			}
 			else
 			{
-				if(demoXml.exists())
+				if (demoXml.exists())
 				{
 					// Only log that we're skipping the demo components if they exist
 					if(M_log.isInfoEnabled()) M_log.info("Skipping demo components from " + dir);
 				}
 			}
 			
-			if(beanDefs == null)
+			if (beanDefs == null)
 			{
 				beanDefs = new Resource[] {new FileSystemResource(xml.getCanonicalPath())};
 			}
@@ -197,32 +197,6 @@ public class ComponentsLoaderImpl {
 			Thread.currentThread().setContextClassLoader(current);
 		}
 		return componentAc;
-	}
-
-	/**
-	 * Test if this File is a valid components package directory.
-	 * 
-	 * @param dir
-	 *        The file to test
-	 * @return true if it is a valid components package directory, false if not.
-	 */
-	protected boolean validComponentsPackage(File dir)
-	{
-		// valid if this is a directory with a WEB-INF directory below with a components.xml file
-		if ((dir != null) && (dir.isDirectory()))
-		{
-			File webinf = new File(dir, "WEB-INF");
-			if ((webinf != null) && (webinf.isDirectory()))
-			{
-				File xml = new File(webinf, "components.xml");
-				if ((xml != null) && (xml.isFile()))
-				{
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	/**
