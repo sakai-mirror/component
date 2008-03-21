@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+
+	<bean id="org.sakaiproject.component.api.ServerConfigurationService"
+			class="org.sakaiproject.component.impl.BasicConfigurationService"
+			init-method="init"
+			destroy-method="destroy"
+			singleton="true">
+
+		<lookup-method name="threadLocalManager" bean="org.sakaiproject.thread_local.api.ThreadLocalManager" />
+		<lookup-method name="sessionManager" bean="org.sakaiproject.tool.api.SessionManager" />
+
+		<property name="toolOrderFile"><value>toolOrder.xml</value></property>
+	</bean>
+
+</beans>
