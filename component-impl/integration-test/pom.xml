@@ -59,6 +59,10 @@
               <name>test.tomcat.home</name>
               <value>${test.tomcat.home}</value>
             </property>
+            <property>
+              <name>maven.tomcat.home</name>
+              <value>${maven.tomcat.home}</value>
+            </property>
           </systemProperties>
           <!--
           	Component Manager configuration tests need to start off
