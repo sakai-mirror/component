@@ -54,23 +54,48 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.4.3</version>
         <configuration>
-          <systemProperties>
-            <property>
-              <name>test.tomcat.home</name>
-              <value>${test.tomcat.home}</value>
-            </property>
-            <property>
-              <name>maven.tomcat.home</name>
-              <value>${maven.tomcat.home}</value>
-            </property>
-          </systemProperties>
-          <!--
-          	Component Manager configuration tests need to start off
-          	completely clean to avoid noise from leftover static
-          	variables.
-          -->
-          <forkMode>pertest</forkMode>
+          <skipTests>true</skipTests>
         </configuration>
+        <executions>
+          <execution>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <skipTests>false</skipTests>
+              <systemProperties>
+                <property>
+                  <name>test.sakai.home</name>
+                  <value>${test.sakai.home}</value>
+                </property>
+                <property>
+                  <name>maven.tomcat.home</name>
+                  <value>${maven.tomcat.home}</value>
+                </property>
+              </systemProperties>
+              <!--
+              	Component Manager configuration tests need to start off
+              	completely clean to avoid noise from leftover static
+              	variables.
+              -->
+              <forkMode>pertest</forkMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sakaiproject.maven.plugins</groupId>
+        <artifactId>sakai</artifactId>
+        <executions>
+          <execution>
+            <id>sakai-test-deploy</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
